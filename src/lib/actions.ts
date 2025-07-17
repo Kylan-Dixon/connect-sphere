@@ -54,13 +54,21 @@ const connectionSchema = z.object({
 });
 
 export async function addConnection(data: unknown) {
+  console.log('--- Inside addConnection server action ---');
   let db;
   try {
     const admin = await getFirebaseAdmin();
     db = admin.db;
     
+    console.log('Value received for "db" from getFirebaseAdmin():', db);
+    console.log('Type of "db":', typeof db);
+    if (db) {
+      console.log('Keys of "db" object:', Object.keys(db));
+    }
+
+
     if (!db) {
-        throw new Error('Database not initialized correctly.');
+        throw new Error('Database not initialized correctly. The "db" object is falsy.');
     }
 
     const validatedFields = connectionSchema.safeParse(data);
@@ -78,15 +86,19 @@ export async function addConnection(data: unknown) {
       createdAt: serverTimestamp(),
     };
 
+    console.log('Attempting to access "connections" collection...');
     await addDoc(collection(db, 'connections'), connectionData);
+    console.log('Successfully added document to "connections" collection.');
     
     if (validatedFields.data.associatedCompany === 'Mohan Coaching') {
       try {
+        console.log('Triggering Zapier webhook for Mohan Coaching...');
         await fetch('https://hooks.zapier.com/hooks/catch/123456/abcdef', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(connectionData),
         });
+        console.log('Zapier webhook triggered.');
       } catch (error) {
           console.error('Failed to trigger Zapier webhook:', error);
           // Non-blocking error
@@ -97,6 +109,7 @@ export async function addConnection(data: unknown) {
     return { success: true, message: 'Connection added successfully.' };
   } catch (error: any) {
      console.error("Error in addConnection:", error);
+     console.log('--- End of addConnection server action ---');
      return { success: false, message: `Failed to add connection: ${error.message}` };
   }
 }
