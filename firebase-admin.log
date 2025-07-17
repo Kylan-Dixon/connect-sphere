@@ -1,0 +1,16 @@
+2025-07-17T21:07:24.754Z: --- Inside addConnection server action ---
+2025-07-17T21:07:24.754Z: --- getFirebaseAdmin() called ---
+2025-07-17T21:07:24.755Z: Attempting to initialize Firebase Admin...
+2025-07-17T21:07:24.755Z: Project ID provided: true
+2025-07-17T21:07:24.755Z: Client Email provided: true
+2025-07-17T21:07:24.755Z: Private Key provided: true
+2025-07-17T21:07:24.755Z: Initializing app with name: firebase-admin-app-1752786444755
+2025-07-17T21:07:24.758Z: Firebase Admin SDK initialized successfully.
+2025-07-17T21:07:24.758Z: --- getFirebaseAdmin() finished ---
+2025-07-17T21:07:24.758Z: Value received for "db" from getFirebaseAdmin(): {"projectId":"quick-link-f2a65"}
+2025-07-17T21:07:24.758Z: Type of "db": object
+2025-07-17T21:07:24.758Z: Keys of "db" object: _settings,_settingsFrozen,_serializer,_projectId,_databaseId,registeredListenersCount,bulkWritersCount,_traceUtil,_backoffSettings,_clientPool
+2025-07-17T21:07:24.762Z: Attempting to access "connections" collection...
+2025-07-17T21:07:24.763Z: Error in addConnection: Expected first argument to collection() to be a CollectionReference, a DocumentReference or FirebaseFirestore
+2025-07-17T21:07:24.764Z: Stack trace: FirebaseError: Expected first argument to collection() to be a CollectionReference, a DocumentReference or FirebaseFirestore
+2025-07-17T21:07:24.764Z: --- End of addConnection server action with error ---

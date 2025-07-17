@@ -23,12 +23,20 @@ function log(message: string) {
 export async function getFirebaseAdmin(): Promise<FirebaseAdmin> {
   log('--- getFirebaseAdmin() called ---');
 
+  if (getApps().length > 0) {
+    log('Firebase Admin SDK already initialized. Returning existing instance.');
+    const app = getApp();
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    return { app, auth, db };
+  }
+  
   const projectId = process.env.FIREBASE_PROJECT_ID;
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
   // IMPORTANT: Replace newlines for Vercel/other environments
   const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
 
-  log('Attempting to initialize Firebase Admin...');
+  log('Attempting to initialize Firebase Admin for the first time...');
   log(`Project ID provided: ${!!projectId}`);
   log(`Client Email provided: ${!!clientEmail}`);
   log(`Private Key provided: ${!!privateKey}`);
@@ -45,15 +53,11 @@ export async function getFirebaseAdmin(): Promise<FirebaseAdmin> {
     privateKey,
   };
   
-  // Use a unique app name to allow for re-initialization if needed
-  // This helps in Next.js dev mode with hot-reloading
-  const appName = `firebase-admin-app-${Date.now()}`;
-  
   try {
-    log(`Initializing app with name: ${appName}`);
+    log(`Initializing default app...`);
     const app = initializeApp({
         credential: cert(serviceAccount),
-    }, appName);
+    });
 
     const auth = getAuth(app);
     const db = getFirestore(app);
