@@ -8,6 +8,9 @@ import { revalidatePath } from "next/cache";
 // --- AUTH ACTIONS ---
 
 export async function signUpWithEmail(prevState: any, formData: FormData) {
+  if (!auth.app) {
+    return { success: false, message: "Firebase Admin not initialized." };
+  }
   const schema = z.object({
     email: z.string().email(),
     password: z.string().min(6),
@@ -72,6 +75,10 @@ const connectionSchema = z.object({
 });
 
 export async function addConnection(data: unknown) {
+  if (!db.app) {
+    return { success: false, message: "Firebase Admin not initialized. Cannot connect to database." };
+  }
+  
   const validatedFields = connectionSchema.safeParse(data);
 
   if (!validatedFields.success) {
