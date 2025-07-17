@@ -1,9 +1,9 @@
-"use server";
+'use server';
 
-import { z } from "zod";
-import { getFirebaseAdmin } from "@/lib/firebase/server";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { revalidatePath } from "next/cache";
+import { z } from 'zod';
+import { getFirebaseAdmin } from '@/lib/firebase/server';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { revalidatePath } from 'next/cache';
 
 // --- AUTH ACTIONS ---
 // Note: Sign-up and sign-in are primarily handled client-side for this app.
@@ -11,7 +11,7 @@ import { revalidatePath } from "next/cache";
 
 export async function signUpWithEmail(prevState: any, formData: FormData) {
   try {
-    const { auth } = getFirebaseAdmin();
+    const { auth } = await getFirebaseAdmin();
     const schema = z.object({
       email: z.string().email(),
       password: z.string().min(6),
@@ -22,7 +22,7 @@ export async function signUpWithEmail(prevState: any, formData: FormData) {
     if (!validatedFields.success) {
       return {
         success: false,
-        message: "Invalid fields. " + validatedFields.error.flatten().fieldErrors,
+        message: 'Invalid fields. ' + validatedFields.error.flatten().fieldErrors,
       };
     }
 
@@ -32,7 +32,7 @@ export async function signUpWithEmail(prevState: any, formData: FormData) {
       email,
       password,
     });
-    return { success: true, message: "User created successfully." };
+    return { success: true, message: 'User created successfully.' };
   } catch (error: any) {
     return { success: false, message: error.message };
   }
@@ -41,11 +41,11 @@ export async function signUpWithEmail(prevState: any, formData: FormData) {
 // --- CONNECTION ACTIONS ---
 
 const connectionSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  linkedInUrl: z.string().url("Invalid LinkedIn URL").optional().or(z.literal('')),
+  name: z.string().min(1, 'Name is required'),
+  linkedInUrl: z.string().url('Invalid LinkedIn URL').optional().or(z.literal('')),
   company: z.string().optional(),
   title: z.string().optional(),
-  associatedCompany: z.enum(["Mohan Financial", "Mohan Coaching"]),
+  associatedCompany: z.enum(['Mohan Financial', 'Mohan Coaching']),
   tags: z.string().optional(),
   reminderDate: z.coerce.date().optional(),
   notes: z.string().optional(),
@@ -54,14 +54,14 @@ const connectionSchema = z.object({
 
 export async function addConnection(data: unknown) {
   try {
-    const { db } = getFirebaseAdmin();
+    const { db } = await getFirebaseAdmin();
 
     const validatedFields = connectionSchema.safeParse(data);
 
     if (!validatedFields.success) {
       return {
         success: false,
-        message: "Invalid data",
+        message: 'Invalid data',
         errors: validatedFields.error.flatten().fieldErrors,
       };
     }
@@ -71,7 +71,7 @@ export async function addConnection(data: unknown) {
       createdAt: serverTimestamp(),
     };
 
-    await addDoc(collection(db, "connections"), connectionData);
+    await addDoc(collection(db, 'connections'), connectionData);
     
     if (validatedFields.data.associatedCompany === 'Mohan Coaching') {
       try {
@@ -86,8 +86,8 @@ export async function addConnection(data: unknown) {
       }
     }
     
-    revalidatePath("/dashboard");
-    return { success: true, message: "Connection added successfully." };
+    revalidatePath('/dashboard');
+    return { success: true, message: 'Connection added successfully.' };
   } catch (error: any) {
      return { success: false, message: `Failed to add connection: ${error.message}` };
   }

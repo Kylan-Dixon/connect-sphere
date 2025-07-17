@@ -14,7 +14,7 @@ let admin: FirebaseAdmin | null = null;
 
 function initializeAdmin() {
   if (admin) {
-    return admin;
+    return;
   }
 
   const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
@@ -41,7 +41,6 @@ function initializeAdmin() {
     
     admin = { app, auth, db };
     console.log('Firebase Admin SDK initialized successfully.');
-    return admin;
   } catch (error: any) {
     console.error('CRITICAL: Failed to initialize Firebase Admin SDK.');
     console.error('The FIREBASE_SERVICE_ACCOUNT_KEY is likely malformed or missing from your .env.local file.');
@@ -50,7 +49,7 @@ function initializeAdmin() {
   }
 }
 
-export function getFirebaseAdmin() {
+export async function getFirebaseAdmin() {
   if (!admin) {
     initializeAdmin();
   }
