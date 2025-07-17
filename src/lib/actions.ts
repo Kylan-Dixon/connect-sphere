@@ -76,7 +76,7 @@ const connectionSchema = z.object({
 
 export async function addConnection(data: unknown) {
   if (!db.app) {
-    return { success: false, message: "Firebase Admin not initialized. Cannot connect to database." };
+    return { success: false, message: "Firebase Admin not initialized. Cannot connect to database. Please check your FIREBASE_SERVICE_ACCOUNT_KEY." };
   }
   
   const validatedFields = connectionSchema.safeParse(data);

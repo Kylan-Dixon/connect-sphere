@@ -1,34 +1,31 @@
+'use server';
+
 import { initializeApp, getApp, getApps, cert } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 
-const serviceAccountKey = {
-  projectId: process.env.FIREBASE_PROJECT_ID,
-  clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-  privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-};
-
 let app;
 
-// Check if all service account keys are present
-if (
-  serviceAccountKey.projectId &&
-  serviceAccountKey.clientEmail &&
-  serviceAccountKey.privateKey
-) {
-  app = !getApps().length
-    ? initializeApp({
-        credential: cert(serviceAccountKey),
-      })
-    : getApp();
+// The entire service account key JSON is expected in this env var
+const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+
+if (serviceAccountJson) {
+  try {
+    const serviceAccount = JSON.parse(serviceAccountJson);
+    app = !getApps().length
+      ? initializeApp({
+          credential: cert(serviceAccount),
+        })
+      : getApp();
+  } catch (error) {
+    console.error('Failed to parse or initialize Firebase Admin SDK:', error);
+  }
 } else {
   console.warn(
-    'Firebase Admin SDK not initialized. Missing environment variables.'
+    'Firebase Admin SDK not initialized. Missing FIREBASE_SERVICE_ACCOUNT_KEY environment variable.'
   );
 }
 
-// Initialize auth and db, they will be undefined if app is not initialized
-// The functions using them should handle this case.
 const auth = app ? getAuth(app) : ({} as any);
 const db = app ? getFirestore(app) : ({} as any);
 
