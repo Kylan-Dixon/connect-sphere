@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -32,7 +33,7 @@ export function AddConnectionSheet() {
           </SheetDescription>
         </SheetHeader>
         <div className="py-4">
-          <AddConnectionForm setSheetOpen={setOpen} />
+          <AddConnectionForm onSuccess={() => setOpen(false)} />
         </div>
       </SheetContent>
     </Sheet>

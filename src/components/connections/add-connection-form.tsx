@@ -59,10 +59,10 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 interface AddConnectionFormProps {
-  setSheetOpen: (open: boolean) => void;
+  onSuccess?: () => void;
 }
 
-export function AddConnectionForm({ setSheetOpen }: AddConnectionFormProps) {
+export function AddConnectionForm({ onSuccess }: AddConnectionFormProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   
@@ -105,7 +105,7 @@ export function AddConnectionForm({ setSheetOpen }: AddConnectionFormProps) {
         description: 'New connection has been added.',
       });
       form.reset();
-      setSheetOpen(false);
+      onSuccess?.();
     } else {
       toast({
         variant: 'destructive',
