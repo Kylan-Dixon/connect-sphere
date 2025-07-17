@@ -4,51 +4,55 @@ import { initializeApp, getApp, getApps, cert, type App } from 'firebase-admin/a
 import { getAuth, type Auth } from 'firebase-admin/auth';
 import { getFirestore, type Firestore } from 'firebase-admin/firestore';
 
-let app: App;
-let auth: Auth;
-let db: Firestore;
+interface FirebaseAdmin {
+  app: App;
+  auth: Auth;
+  db: Firestore;
+}
 
-const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+let admin: FirebaseAdmin | null = null;
 
-if (serviceAccountJson) {
+function initializeAdmin() {
+  if (admin) {
+    return admin;
+  }
+
+  const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+
+  if (!serviceAccountJson) {
+    console.error('CRITICAL: FIREBASE_SERVICE_ACCOUNT_KEY environment variable not found.');
+    throw new Error('Firebase Admin SDK could not be initialized. Service account key is missing.');
+  }
+
   try {
     const serviceAccount = JSON.parse(serviceAccountJson);
-    
+
     // The replace is crucial for keys stored in single-line env vars.
     if (serviceAccount.private_key) {
       serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
     }
 
-    if (!getApps().length) {
-      app = initializeApp({
-        credential: cert(serviceAccount),
-      });
-      console.log('Firebase Admin SDK initialized successfully.');
-    } else {
-      app = getApp();
-      console.log('Using existing Firebase Admin SDK app instance.');
-    }
+    const app = !getApps().length
+      ? initializeApp({ credential: cert(serviceAccount) })
+      : getApp();
+
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    
+    admin = { app, auth, db };
+    console.log('Firebase Admin SDK initialized successfully.');
+    return admin;
   } catch (error: any) {
     console.error('CRITICAL: Failed to initialize Firebase Admin SDK.');
     console.error('The FIREBASE_SERVICE_ACCOUNT_KEY is likely malformed or missing from your .env.local file.');
     console.error('Parsing Error:', error.message);
-    // Gracefully fail without crashing the build
-    app = getApps().length > 0 ? getApp() : (undefined as any); 
+    throw new Error(`Firebase Admin SDK could not be initialized: ${error.message}`);
   }
-} else {
-    console.error('CRITICAL: FIREBASE_SERVICE_ACCOUNT_KEY environment variable not found.');
-    app = undefined as any;
 }
 
-// Initialize auth and db only if app was initialized successfully
-if (app) {
-    auth = getAuth(app);
-    db = getFirestore(app);
-} else {
-    // Provide non-functional mocks to satisfy Next.js compiler
-    auth = {} as Auth;
-    db = {} as Firestore;
+export function getFirebaseAdmin() {
+  if (!admin) {
+    initializeAdmin();
+  }
+  return admin!;
 }
-
-
-export { app, auth, db };

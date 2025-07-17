@@ -1,33 +1,33 @@
 "use server";
 
 import { z } from "zod";
-import { auth, db } from "@/lib/firebase/server";
+import { getFirebaseAdmin } from "@/lib/firebase/server";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { revalidatePath } from "next/cache";
 
 // --- AUTH ACTIONS ---
+// Note: Sign-up and sign-in are primarily handled client-side for this app.
+// These server actions are here as examples but are not actively used by the auth form.
 
 export async function signUpWithEmail(prevState: any, formData: FormData) {
-  if (!auth.app) {
-    return { success: false, message: "Firebase Admin not initialized." };
-  }
-  const schema = z.object({
-    email: z.string().email(),
-    password: z.string().min(6),
-  });
-
-  const validatedFields = schema.safeParse(Object.fromEntries(formData));
-
-  if (!validatedFields.success) {
-    return {
-      success: false,
-      message: "Invalid fields. " + validatedFields.error.flatten().fieldErrors,
-    };
-  }
-
-  const { email, password } = validatedFields.data;
-
   try {
+    const { auth } = getFirebaseAdmin();
+    const schema = z.object({
+      email: z.string().email(),
+      password: z.string().min(6),
+    });
+
+    const validatedFields = schema.safeParse(Object.fromEntries(formData));
+
+    if (!validatedFields.success) {
+      return {
+        success: false,
+        message: "Invalid fields. " + validatedFields.error.flatten().fieldErrors,
+      };
+    }
+
+    const { email, password } = validatedFields.data;
+
     await auth.createUser({
       email,
       password,
@@ -36,28 +36,6 @@ export async function signUpWithEmail(prevState: any, formData: FormData) {
   } catch (error: any) {
     return { success: false, message: error.message };
   }
-}
-
-// NOTE: Firebase Admin SDK doesn't handle sign-in. This is a placeholder.
-// Actual sign-in is handled client-side with the Firebase JS SDK.
-// This action is here to demonstrate form handling with server actions.
-export async function signInWithEmail(prevState: any, formData: FormData) {
-  const schema = z.object({
-    email: z.string().email(),
-    password: z.string().min(1, "Password is required"), // min 1 for presence check
-  });
-  
-  const validatedFields = schema.safeParse(Object.fromEntries(formData));
-
-  if (!validatedFields.success) {
-    return {
-      success: false,
-      message: "Invalid email or password.",
-    };
-  }
-
-  // Client-side will handle the actual sign-in.
-  return { success: true, message: "Proceeding to sign in." };
 }
 
 // --- CONNECTION ACTIONS ---
@@ -75,21 +53,19 @@ const connectionSchema = z.object({
 });
 
 export async function addConnection(data: unknown) {
-  if (!db.app) {
-    return { success: false, message: "Firebase Admin not initialized. Cannot connect to database. Please check your FIREBASE_SERVICE_ACCOUNT_KEY." };
-  }
-  
-  const validatedFields = connectionSchema.safeParse(data);
-
-  if (!validatedFields.success) {
-    return {
-      success: false,
-      message: "Invalid data",
-      errors: validatedFields.error.flatten().fieldErrors,
-    };
-  }
-
   try {
+    const { db } = getFirebaseAdmin();
+
+    const validatedFields = connectionSchema.safeParse(data);
+
+    if (!validatedFields.success) {
+      return {
+        success: false,
+        message: "Invalid data",
+        errors: validatedFields.error.flatten().fieldErrors,
+      };
+    }
+
     const connectionData = {
       ...validatedFields.data,
       createdAt: serverTimestamp(),
@@ -97,10 +73,8 @@ export async function addConnection(data: unknown) {
 
     await addDoc(collection(db, "connections"), connectionData);
     
-    // Placeholder for GoHighLevel Zap
     if (validatedFields.data.associatedCompany === 'Mohan Coaching') {
       try {
-        // In a real app, use an environment variable for the webhook URL
         await fetch('https://hooks.zapier.com/hooks/catch/123456/abcdef', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -115,6 +89,6 @@ export async function addConnection(data: unknown) {
     revalidatePath("/dashboard");
     return { success: true, message: "Connection added successfully." };
   } catch (error: any) {
-    return { success: false, message: error.message };
+     return { success: false, message: `Failed to add connection: ${error.message}` };
   }
 }
