@@ -46,7 +46,7 @@ export const columns: ColumnDef<Connection>[] = [
     header: 'Tags',
     cell: ({ row }) => {
       const tags = row.getValue('tags') as string[] | undefined;
-      if (!tags || tags.length === 0) return null;
+      if (!Array.isArray(tags) || tags.length === 0) return null;
       return (
         <div className="flex flex-wrap gap-1">
           {tags.map((tag, index) => (
