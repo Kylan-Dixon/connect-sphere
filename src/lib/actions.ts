@@ -44,7 +44,7 @@ export async function signUpWithEmail(prevState: any, formData: FormData) {
       password,
     });
     return { success: true, message: 'User created successfully.' };
-  } catch (error: any) {
+  } catch (error: any) => {
     return { success: false, message: error.message };
   }
 }
@@ -57,7 +57,8 @@ const connectionSchema = z.object({
   company: z.string().optional(),
   title: z.string().optional(),
   associatedCompany: z.enum(['Mohan Financial', 'Mohan Coaching']),
-  tags: z.string().optional(),
+  tags: z.array(z.enum(['Connection', 'Referral'])).optional(),
+  referrerName: z.string().optional(),
   reminderDate: z.coerce.date().optional(),
   notes: z.string().optional(),
   userId: z.string(),
@@ -93,6 +94,12 @@ export async function addConnection(data: unknown) {
       ...validatedFields.data,
       createdAt: Timestamp.now(),
     };
+    
+    // If 'Referral' is not in tags, don't save referrerName
+    if (!connectionData.tags?.includes('Referral')) {
+        delete (connectionData as Partial<typeof connectionData>).referrerName;
+    }
+
 
     log('Attempting to access "connections" collection using Admin SDK...');
     const connectionsCollectionRef = db.collection('connections');

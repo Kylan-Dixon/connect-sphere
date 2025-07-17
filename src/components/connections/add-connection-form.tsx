@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -27,6 +28,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/datepicker';
+import { Checkbox } from '@/components/ui/checkbox';
+
+const tagsList = ['Connection', 'Referral'] as const;
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -38,9 +42,18 @@ const formSchema = z.object({
   associatedCompany: z.enum(['Mohan Financial', 'Mohan Coaching'], {
     required_error: 'You need to select an associated company.',
   }),
-  tags: z.string().optional(),
+  tags: z.array(z.enum(tagsList)).optional(),
+  referrerName: z.string().optional(),
   reminderDate: z.date().optional(),
   notes: z.string().optional(),
+}).refine(data => {
+    if (data.tags?.includes('Referral')) {
+        return !!data.referrerName && data.referrerName.length > 0;
+    }
+    return true;
+}, {
+    message: 'Referrer name is required when tag is "Referral".',
+    path: ['referrerName'],
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -60,10 +73,14 @@ export function AddConnectionForm({ setSheetOpen }: AddConnectionFormProps) {
       linkedInUrl: '',
       company: '',
       title: '',
-      tags: '',
+      tags: [],
+      referrerName: '',
       notes: '',
     },
   });
+
+  const watchedTags = form.watch('tags');
+  const isReferral = watchedTags?.includes('Referral');
 
   async function onSubmit(values: FormValues) {
     if (!user) {
@@ -177,19 +194,63 @@ export function AddConnectionForm({ setSheetOpen }: AddConnectionFormProps) {
         <FormField
           control={form.control}
           name="tags"
-          render={({ field }) => (
+          render={() => (
             <FormItem>
-              <FormLabel>Tags</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g. prospect, client, tech" {...field} />
-              </FormControl>
-              <FormDescription>
-                Comma-separated values.
-              </FormDescription>
+              <div className="mb-4">
+                <FormLabel className="text-base">Tags</FormLabel>
+              </div>
+              {tagsList.map((item) => (
+                <FormField
+                  key={item}
+                  control={form.control}
+                  name="tags"
+                  render={({ field }) => {
+                    return (
+                      <FormItem
+                        key={item}
+                        className="flex flex-row items-start space-x-3 space-y-0"
+                      >
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value?.includes(item)}
+                            onCheckedChange={(checked) => {
+                              return checked
+                                ? field.onChange([...(field.value || []), item])
+                                : field.onChange(
+                                    field.value?.filter(
+                                      (value) => value !== item
+                                    )
+                                  )
+                            }}
+                          />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          {item}
+                        </FormLabel>
+                      </FormItem>
+                    )
+                  }}
+                />
+              ))}
               <FormMessage />
             </FormItem>
           )}
         />
+        {isReferral && (
+             <FormField
+                control={form.control}
+                name="referrerName"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Referrer Name</FormLabel>
+                    <FormControl>
+                        <Input placeholder="Jane Smith" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+            />
+        )}
         <FormField
           control={form.control}
           name="reminderDate"

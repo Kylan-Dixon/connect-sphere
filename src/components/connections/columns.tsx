@@ -1,3 +1,4 @@
+
 'use client';
 
 import { type ColumnDef } from '@tanstack/react-table';
@@ -44,11 +45,11 @@ export const columns: ColumnDef<Connection>[] = [
     accessorKey: 'tags',
     header: 'Tags',
     cell: ({ row }) => {
-      const tags = row.getValue('tags') as string | undefined;
-      if (!tags) return null;
+      const tags = row.getValue('tags') as string[] | undefined;
+      if (!tags || tags.length === 0) return null;
       return (
         <div className="flex flex-wrap gap-1">
-          {tags.split(',').map((tag, index) => (
+          {tags.map((tag, index) => (
             <Badge key={index} variant="secondary" className="font-normal">
               {tag.trim()}
             </Badge>
@@ -56,6 +57,10 @@ export const columns: ColumnDef<Connection>[] = [
         </div>
       );
     },
+  },
+  {
+    accessorKey: 'referrerName',
+    header: 'Referrer',
   },
   {
     accessorKey: 'reminderDate',

@@ -7,7 +7,8 @@ export type Connection = {
   company?: string;
   title?: string;
   associatedCompany: 'Mohan Financial' | 'Mohan Coaching';
-  tags?: string;
+  tags?: ('Connection' | 'Referral')[];
+  referrerName?: string;
   reminderDate?: Timestamp;
   notes?: string;
   createdAt: Timestamp;
