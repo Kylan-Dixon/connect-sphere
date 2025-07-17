@@ -1,3 +1,4 @@
+
 'use server';
 
 import { z } from 'zod';
@@ -53,8 +54,14 @@ const connectionSchema = z.object({
 });
 
 export async function addConnection(data: unknown) {
+  let db;
   try {
-    const { db } = await getFirebaseAdmin();
+    const admin = await getFirebaseAdmin();
+    db = admin.db;
+    
+    if (!db) {
+        throw new Error('Database not initialized correctly.');
+    }
 
     const validatedFields = connectionSchema.safeParse(data);
 
@@ -89,6 +96,7 @@ export async function addConnection(data: unknown) {
     revalidatePath('/dashboard');
     return { success: true, message: 'Connection added successfully.' };
   } catch (error: any) {
+     console.error("Error in addConnection:", error);
      return { success: false, message: `Failed to add connection: ${error.message}` };
   }
 }

@@ -11,48 +11,37 @@ interface FirebaseAdmin {
   db: Firestore;
 }
 
-let admin: FirebaseAdmin | null = null;
-
-function initializeAdmin() {
-  if (admin) {
-    return;
-  }
-
+export async function getFirebaseAdmin(): Promise<FirebaseAdmin> {
   const projectId = process.env.FIREBASE_PROJECT_ID;
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+  const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
 
   if (!projectId || !clientEmail || !privateKey) {
-    console.error('CRITICAL: Missing one or more Firebase Admin environment variables (FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY).');
     throw new Error('Firebase Admin SDK could not be initialized. Missing required environment variables.');
   }
 
-  try {
-    const serviceAccount: ServiceAccount = {
-      projectId,
-      clientEmail,
-      privateKey: privateKey.replace(/\\n/g, '\n'), // Important for keys from .env
-    };
+  const serviceAccount: ServiceAccount = {
+    projectId,
+    clientEmail,
+    privateKey,
+  };
 
-    const app = !getApps().length
-      ? initializeApp({ credential: cert(serviceAccount) })
-      : getApp();
+  // Use a unique app name to allow for re-initialization if needed
+  const appName = `firebase-admin-app-${Date.now()}`;
+  
+  try {
+    const app = initializeApp({
+        credential: cert(serviceAccount),
+    }, appName);
 
     const auth = getAuth(app);
     const db = getFirestore(app);
     
-    admin = { app, auth, db };
-    console.log('Firebase Admin SDK initialized successfully.');
+    return { app, auth, db };
+
   } catch (error: any) {
-    console.error('CRITICAL: Failed to initialize Firebase Admin SDK.');
+    console.error('CRITICAL: Failed to initialize Firebase Admin SDK in getFirebaseAdmin.');
     console.error('Error:', error.message);
     throw new Error(`Firebase Admin SDK could not be initialized: ${error.message}`);
   }
-}
-
-export async function getFirebaseAdmin() {
-  if (!admin) {
-    initializeAdmin();
-  }
-  return admin!;
 }
