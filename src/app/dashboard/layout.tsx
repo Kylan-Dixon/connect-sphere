@@ -1,3 +1,4 @@
+
 'use client';
 
 import { type ReactNode } from 'react';
@@ -25,12 +26,14 @@ function DashboardLayoutContent({ children }: { children: ReactNode }) {
 
   return (
     <SidebarProvider>
-      <Sidebar>
-        <SidebarNav />
-      </Sidebar>
-      <SidebarInset>
-        <main className="flex-1 space-y-4 p-4 md:p-8 pt-6">{children}</main>
-      </SidebarInset>
+        <div className="flex min-h-screen">
+            <Sidebar>
+                <SidebarNav />
+            </Sidebar>
+            <SidebarInset>
+                <main className="flex-1 space-y-4 p-4 md:p-8 pt-6">{children}</main>
+            </SidebarInset>
+        </div>
     </SidebarProvider>
   );
 }

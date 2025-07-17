@@ -1,3 +1,4 @@
+
 'use client'
 
 import * as React from 'react'
@@ -5,28 +6,28 @@ import { cn } from '@/lib/utils'
 import { Button } from './button'
 import { PanelLeft } from 'lucide-react'
 import { Sheet, SheetContent, SheetTrigger } from './sheet'
-
-const useIsMobile = () => {
-  const [isMobile, setIsMobile] = React.useState(false)
-  React.useEffect(() => {
-    const checkIsMobile = () => setIsMobile(window.innerWidth < 768)
-    checkIsMobile()
-    window.addEventListener('resize', checkIsMobile)
-    return () => window.removeEventListener('resize', checkIsMobile)
-  }, [])
-  return isMobile
-}
+import { useIsMobile } from '@/hooks/use-mobile'
 
 const SidebarContext = React.createContext<{ isOpen: boolean; setIsOpen: React.Dispatch<React.SetStateAction<boolean>> } | undefined>(undefined);
 
-const useSidebar = () => {
+export const useSidebar = () => {
     const context = React.useContext(SidebarContext);
     if (!context) throw new Error("useSidebar must be used within a SidebarProvider");
     return context;
 };
 
 export const SidebarProvider = ({ children }: { children: React.ReactNode }) => {
-    const [isOpen, setIsOpen] = React.useState(true);
+    const isMobile = useIsMobile();
+    const [isOpen, setIsOpen] = React.useState(!isMobile);
+    
+    React.useEffect(() => {
+        if (isMobile) {
+            setIsOpen(false);
+        } else {
+            setIsOpen(true);
+        }
+    }, [isMobile]);
+
     return <SidebarContext.Provider value={{ isOpen, setIsOpen }}>{children}</SidebarContext.Provider>;
 };
 
@@ -52,7 +53,8 @@ export const Sidebar = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTM
       <aside
         ref={ref}
         className={cn(
-          'hidden md:flex flex-col h-screen w-72 border-r bg-card text-card-foreground transition-all duration-300 ease-in-out',
+          'hidden md:flex flex-col h-screen border-r bg-card text-card-foreground transition-all duration-300 ease-in-out',
+          isOpen ? 'w-72' : 'w-20',
           className
         )}
         {...props}
@@ -66,14 +68,14 @@ Sidebar.displayName = 'Sidebar'
 
 export const SidebarHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
     ({ className, ...props }, ref) => (
-      <div ref={ref} className={cn('p-4 border-b', className)} {...props} />
+      <div ref={ref} className={cn('py-4 border-b', className)} {...props} />
     )
   )
 SidebarHeader.displayName = 'SidebarHeader';
 
 export const SidebarContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
     ({ className, ...props }, ref) => (
-      <div ref={ref} className={cn('flex-1 overflow-y-auto p-4', className)} {...props} />
+      <div ref={ref} className={cn('flex-1 overflow-y-auto px-4 py-2', className)} {...props} />
     )
 )
 SidebarContent.displayName = 'SidebarContent';
@@ -81,14 +83,14 @@ SidebarContent.displayName = 'SidebarContent';
 
 export const SidebarFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
     ({ className, ...props }, ref) => (
-      <div ref={ref} className={cn('p-4 border-t', className)} {...props} />
+      <div ref={ref} className={cn('py-2 border-t', className)} {...props} />
     )
 )
 SidebarFooter.displayName = 'SidebarFooter';
 
 export const SidebarMenu = React.forwardRef<HTMLUListElement, React.HTMLAttributes<HTMLUListElement>>(
     ({ className, ...props }, ref) => (
-      <ul ref={ref} className={cn('space-y-2', className)} {...props} />
+      <ul ref={ref} className={cn('space-y-1', className)} {...props} />
     )
 )
 SidebarMenu.displayName = 'SidebarMenu';
@@ -104,7 +106,8 @@ export const SidebarMenuButton = React.forwardRef<
   React.ElementRef<typeof Button>,
   React.ComponentProps<typeof Button> & { isActive?: boolean }
 >(({ className, isActive, ...props }, ref) => {
-  return <Button ref={ref} variant={isActive ? 'secondary' : 'ghost'} className={cn('w-full justify-start', className)} {...props} />;
+  const { isOpen } = useSidebar();
+  return <Button ref={ref} variant={isActive ? 'secondary' : 'ghost'} className={cn('w-full', isOpen ? 'justify-start' : 'justify-center', className)} {...props} />;
 });
 SidebarMenuButton.displayName = 'SidebarMenuButton';
 
@@ -113,12 +116,14 @@ export const SidebarTrigger = React.forwardRef<HTMLButtonElement, React.ButtonHT
     ({ className, ...props }, ref) => {
         const { setIsOpen } = useSidebar();
         return (
-            <SheetTrigger asChild>
-                 <Button ref={ref} variant="ghost" size="icon" className={cn('md:hidden', className)} {...props} onClick={() => setIsOpen(true)}>
-                    <PanelLeft />
-                    <span className="sr-only">Toggle Sidebar</span>
-                </Button>
-            </SheetTrigger>
+            <div className="md:hidden">
+                <SheetTrigger asChild>
+                     <Button ref={ref} variant="ghost" size="icon" className={cn(className)} {...props} onClick={() => setIsOpen(true)}>
+                        <PanelLeft />
+                        <span className="sr-only">Toggle Sidebar</span>
+                    </Button>
+                </SheetTrigger>
+            </div>
         )
     }
 )

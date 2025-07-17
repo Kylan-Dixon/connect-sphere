@@ -1,3 +1,4 @@
+
 'use client';
 
 import { signOut } from 'firebase/auth';
@@ -18,8 +19,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '../ui/skeleton';
+import { cn } from '@/lib/utils';
 
-export function UserNav() {
+export function UserNav({ isOpen }: { isOpen?: boolean }) {
   const { user, loading } = useAuth();
   const router = useRouter();
 
@@ -45,14 +47,14 @@ export function UserNav() {
     <div className="p-2">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="relative h-10 w-full justify-start gap-2">
+          <Button variant="ghost" className={cn("relative h-10 w-full gap-2", isOpen ? "justify-start" : "justify-center size-10")}>
             <Avatar className="h-8 w-8">
               <AvatarImage src={user.photoURL ?? ''} alt="User avatar" />
               <AvatarFallback>
                 <User />
               </AvatarFallback>
             </Avatar>
-            <div className='flex flex-col items-start'>
+            <div className={cn('flex flex-col items-start', isOpen ? 'opacity-100' : 'opacity-0 w-0')}>
                 <p className="text-sm font-medium leading-none">My Account</p>
                 <p className="text-xs leading-none text-muted-foreground truncate max-w-[120px]">
                     {user.email}
