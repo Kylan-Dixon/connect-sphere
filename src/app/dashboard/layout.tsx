@@ -3,7 +3,7 @@
 
 import { type ReactNode } from 'react';
 import { AuthProvider, useRequireAuth } from '@/hooks/use-auth';
-import { Sidebar, SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import { Sidebar, SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { SidebarNav } from '@/components/dashboard/sidebar-nav';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -31,6 +31,9 @@ function DashboardLayoutContent({ children }: { children: ReactNode }) {
                 <SidebarNav />
             </Sidebar>
             <SidebarInset>
+                <header className="flex items-center justify-end p-4 md:hidden">
+                    <SidebarTrigger />
+                </header>
                 <main className="flex-1 space-y-4 p-4 md:p-8 pt-6">{children}</main>
             </SidebarInset>
         </div>

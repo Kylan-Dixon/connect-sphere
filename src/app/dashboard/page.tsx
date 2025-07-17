@@ -9,7 +9,6 @@ import { db } from '@/lib/firebase/client';
 import { type Connection } from '@/lib/types';
 import { ConnectionsTable } from '@/components/connections/connections-table';
 import { columns } from '@/components/connections/columns';
-import { SidebarTrigger } from '@/components/ui/sidebar';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -45,7 +44,6 @@ export default function DashboardPage() {
     <div className="space-y-4">
        <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight font-headline">All Connections</h2>
-        <SidebarTrigger />
       </div>
       <ConnectionsTable columns={columns} data={connections} loading={loading} />
     </div>
