@@ -5,6 +5,16 @@ import { z } from 'zod';
 import { getFirebaseAdmin } from '@/lib/firebase/server';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
+import fs from 'fs';
+import path from 'path';
+
+const logFilePath = path.join(process.cwd(), 'firebase-admin.log');
+
+function log(message: string) {
+  const timestamp = new Date().toISOString();
+  fs.appendFileSync(logFilePath, `${timestamp}: ${message}\n`, 'utf8');
+}
+
 
 // --- AUTH ACTIONS ---
 // Note: Sign-up and sign-in are primarily handled client-side for this app.
@@ -54,16 +64,16 @@ const connectionSchema = z.object({
 });
 
 export async function addConnection(data: unknown) {
-  console.log('--- Inside addConnection server action ---');
+  log('--- Inside addConnection server action ---');
   let db;
   try {
     const admin = await getFirebaseAdmin();
     db = admin.db;
     
-    console.log('Value received for "db" from getFirebaseAdmin():', db);
-    console.log('Type of "db":', typeof db);
+    log(`Value received for "db" from getFirebaseAdmin(): ${JSON.stringify(db)}`);
+    log(`Type of "db": ${typeof db}`);
     if (db) {
-      console.log('Keys of "db" object:', Object.keys(db));
+      log(`Keys of "db" object: ${Object.keys(db)}`);
     }
 
 
@@ -74,10 +84,12 @@ export async function addConnection(data: unknown) {
     const validatedFields = connectionSchema.safeParse(data);
 
     if (!validatedFields.success) {
+      const errorDetails = validatedFields.error.flatten().fieldErrors;
+      log(`Validation failed: ${JSON.stringify(errorDetails)}`);
       return {
         success: false,
         message: 'Invalid data',
-        errors: validatedFields.error.flatten().fieldErrors,
+        errors: errorDetails,
       };
     }
 
@@ -86,21 +98,21 @@ export async function addConnection(data: unknown) {
       createdAt: serverTimestamp(),
     };
 
-    console.log('Attempting to access "connections" collection...');
+    log('Attempting to access "connections" collection...');
     await addDoc(collection(db, 'connections'), connectionData);
-    console.log('Successfully added document to "connections" collection.');
+    log('Successfully added document to "connections" collection.');
     
     if (validatedFields.data.associatedCompany === 'Mohan Coaching') {
       try {
-        console.log('Triggering Zapier webhook for Mohan Coaching...');
+        log('Triggering Zapier webhook for Mohan Coaching...');
         await fetch('https://hooks.zapier.com/hooks/catch/123456/abcdef', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(connectionData),
         });
-        console.log('Zapier webhook triggered.');
+        log('Zapier webhook triggered.');
       } catch (error) {
-          console.error('Failed to trigger Zapier webhook:', error);
+          log(`Failed to trigger Zapier webhook: ${error}`);
           // Non-blocking error
       }
     }
@@ -108,8 +120,9 @@ export async function addConnection(data: unknown) {
     revalidatePath('/dashboard');
     return { success: true, message: 'Connection added successfully.' };
   } catch (error: any) {
-     console.error("Error in addConnection:", error);
-     console.log('--- End of addConnection server action ---');
+     log(`Error in addConnection: ${error.message}`);
+     log(`Stack trace: ${error.stack}`);
+     log('--- End of addConnection server action with error ---');
      return { success: false, message: `Failed to add connection: ${error.message}` };
   }
 }
