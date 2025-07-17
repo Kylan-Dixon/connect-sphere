@@ -13,6 +13,10 @@ const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
 if (serviceAccountJson) {
   try {
     const serviceAccount = JSON.parse(serviceAccountJson);
+    if (serviceAccount.private_key) {
+        serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+    }
+    
     if (!getApps().length) {
       app = initializeApp({
         credential: cert(serviceAccount),
@@ -23,7 +27,7 @@ if (serviceAccountJson) {
       console.log('Using existing Firebase Admin SDK app instance.');
     }
   } catch (error: any) {
-    console.error('CRITICAL: Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY. The JSON is likely malformed. Please check your .env.local file.');
+    console.error('CRITICAL: Failed to initialize Firebase Admin SDK. The FIREBASE_SERVICE_ACCOUNT_KEY is likely malformed or missing.');
     console.error('Parsing Error:', error.message);
   }
 } else {
