@@ -1,0 +1,16 @@
+2025-07-17T21:27:57.237Z: --- Inside addConnection server action ---
+2025-07-17T21:27:57.239Z: --- getFirebaseAdmin() called ---
+2025-07-17T21:27:57.239Z: Firebase Admin SDK already initialized. Returning existing instance.
+2025-07-17T21:27:57.240Z: Value received for "db" from getFirebaseAdmin(): {"projectId":"quick-link-f2a65"}
+2025-07-17T21:27:57.240Z: Type of "db": object
+2025-07-17T21:27:57.240Z: Keys of "db" object: _settings,_settingsFrozen,_serializer,_projectId,_databaseId,registeredListenersCount,bulkWritersCount,_traceUtil,_backoffSettings,_clientPool,_gax
+2025-07-17T21:27:57.251Z: Attempting to access "connections" collection using Admin SDK...
+2025-07-17T21:27:57.876Z: Successfully added document to "connections" collection.
+2025-07-17T21:29:16.780Z: --- Inside addConnection server action ---
+2025-07-17T21:29:16.780Z: --- getFirebaseAdmin() called ---
+2025-07-17T21:29:16.782Z: Firebase Admin SDK already initialized. Returning existing instance.
+2025-07-17T21:29:16.787Z: Value received for "db" from getFirebaseAdmin(): {"projectId":"quick-link-f2a65"}
+2025-07-17T21:29:16.790Z: Type of "db": object
+2025-07-17T21:29:16.793Z: Keys of "db" object: _settings,_settingsFrozen,_serializer,_projectId,_databaseId,registeredListenersCount,bulkWritersCount,_traceUtil,_backoffSettings,_clientPool,_gax
+2025-07-17T21:29:16.799Z: Attempting to access "connections" collection using Admin SDK...
+2025-07-17T21:29:16.958Z: Successfully added document to "connections" collection.

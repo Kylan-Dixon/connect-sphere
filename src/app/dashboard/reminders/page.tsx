@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { collection, query, where, onSnapshot, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { useAuth } from '@/hooks/use-auth';
 import { db } from '@/lib/firebase/client';
 import { type Connection } from '@/lib/types';
@@ -17,13 +17,11 @@ export default function RemindersPage() {
     if (!user) return;
     setLoading(true);
 
-    const now = Timestamp.now();
-
     const q = query(
       collection(db, 'connections'),
       where('userId', '==', user.uid),
-      where('reminderDate', '<=', now),
-      orderBy('reminderDate', 'desc')
+      where('reminderDate', '!=', null),
+      orderBy('reminderDate', 'asc')
     );
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -44,10 +42,10 @@ export default function RemindersPage() {
   return (
     <div className="space-y-4">
       <h2 className="text-3xl font-bold tracking-tight font-headline">
-        Active Reminders
+        All Reminders
       </h2>
       <p className="text-muted-foreground">
-        Showing connections with reminders due today or in the past.
+        Showing all connections with a reminder date, sorted by the soonest.
       </p>
       <ConnectionsTable columns={columns} data={reminders} loading={loading} />
     </div>
