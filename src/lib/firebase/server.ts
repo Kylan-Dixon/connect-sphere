@@ -14,6 +14,7 @@ if (serviceAccountJson) {
   try {
     const serviceAccount = JSON.parse(serviceAccountJson);
     if (serviceAccount.private_key) {
+        // The replace is crucial for keys stored in single-line env vars.
         serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
     }
     
