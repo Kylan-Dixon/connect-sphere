@@ -1,32 +1,45 @@
 'use server';
 
-import { initializeApp, getApp, getApps, cert } from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
-import { getFirestore } from 'firebase-admin/firestore';
+import { initializeApp, getApp, getApps, cert, type App } from 'firebase-admin/app';
+import { getAuth, type Auth } from 'firebase-admin/auth';
+import { getFirestore, type Firestore } from 'firebase-admin/firestore';
 
-let app;
+let app: App | undefined;
+let auth: Auth;
+let db: Firestore;
 
-// The entire service account key JSON is expected in this env var
 const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
 
 if (serviceAccountJson) {
   try {
     const serviceAccount = JSON.parse(serviceAccountJson);
-    app = !getApps().length
-      ? initializeApp({
-          credential: cert(serviceAccount),
-        })
-      : getApp();
-  } catch (error) {
-    console.error('Failed to parse or initialize Firebase Admin SDK:', error);
+    if (!getApps().length) {
+      app = initializeApp({
+        credential: cert(serviceAccount),
+      });
+      console.log('Firebase Admin SDK initialized successfully.');
+    } else {
+      app = getApp();
+      console.log('Using existing Firebase Admin SDK app instance.');
+    }
+  } catch (error: any) {
+    console.error('CRITICAL: Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY. The JSON is likely malformed. Please check your .env.local file.');
+    console.error('Parsing Error:', error.message);
   }
 } else {
   console.warn(
-    'Firebase Admin SDK not initialized. Missing FIREBASE_SERVICE_ACCOUNT_KEY environment variable.'
+    'CRITICAL: FIREBASE_SERVICE_ACCOUNT_KEY environment variable not found. Firebase Admin SDK will not be initialized.'
   );
 }
 
-const auth = app ? getAuth(app) : ({} as any);
-const db = app ? getFirestore(app) : ({} as any);
+if (app) {
+  auth = getAuth(app);
+  db = getFirestore(app);
+} else {
+  // Provide mock objects to prevent server crashes on import,
+  // but functionality will be broken. The logs above are the real error source.
+  auth = {} as Auth;
+  db = {} as Firestore;
+}
 
 export { app, auth, db };
