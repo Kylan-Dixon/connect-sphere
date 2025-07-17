@@ -1,7 +1,7 @@
 
 'use server';
 
-import { initializeApp, getApp, getApps, cert, type App } from 'firebase-admin/app';
+import { initializeApp, getApp, getApps, cert, type App, type ServiceAccount } from 'firebase-admin/app';
 import { getAuth, type Auth } from 'firebase-admin/auth';
 import { getFirestore, type Firestore } from 'firebase-admin/firestore';
 
@@ -18,20 +18,21 @@ function initializeAdmin() {
     return;
   }
 
-  const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+  const projectId = process.env.FIREBASE_PROJECT_ID;
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  const privateKey = process.env.FIREBASE_PRIVATE_KEY;
 
-  if (!serviceAccountJson) {
-    console.error('CRITICAL: FIREBASE_SERVICE_ACCOUNT_KEY environment variable not found.');
-    throw new Error('Firebase Admin SDK could not be initialized. Service account key is missing.');
+  if (!projectId || !clientEmail || !privateKey) {
+    console.error('CRITICAL: Missing one or more Firebase Admin environment variables (FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY).');
+    throw new Error('Firebase Admin SDK could not be initialized. Missing required environment variables.');
   }
 
   try {
-    const serviceAccount = JSON.parse(serviceAccountJson);
-
-    // The replace is crucial for keys stored in single-line env vars.
-    if (serviceAccount.private_key) {
-      serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
-    }
+    const serviceAccount: ServiceAccount = {
+      projectId,
+      clientEmail,
+      privateKey: privateKey.replace(/\\n/g, '\n'), // Important for keys from .env
+    };
 
     const app = !getApps().length
       ? initializeApp({ credential: cert(serviceAccount) })
@@ -44,8 +45,7 @@ function initializeAdmin() {
     console.log('Firebase Admin SDK initialized successfully.');
   } catch (error: any) {
     console.error('CRITICAL: Failed to initialize Firebase Admin SDK.');
-    console.error('The FIREBASE_SERVICE_ACCOUNT_KEY is likely malformed or missing from your .env.local file.');
-    console.error('Parsing Error:', error.message);
+    console.error('Error:', error.message);
     throw new Error(`Firebase Admin SDK could not be initialized: ${error.message}`);
   }
 }
