@@ -113,25 +113,34 @@ SidebarMenuButton.displayName = 'SidebarMenuButton';
 
 
 export const SidebarTrigger = React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement>>(
-    ({ className, ...props }, ref) => {
-        const { setIsOpen } = useSidebar();
+    (props, ref) => {
         return (
-            <div className="md:hidden">
-                <SheetTrigger asChild>
-                     <Button ref={ref} variant="ghost" size="icon" className={cn(className)} {...props} onClick={() => setIsOpen(true)}>
-                        <PanelLeft />
-                        <span className="sr-only">Toggle Sidebar</span>
-                    </Button>
-                </SheetTrigger>
-            </div>
+            <SheetTrigger asChild>
+                    <Button ref={ref} variant="ghost" size="icon" {...props}>
+                    <PanelLeft />
+                    <span className="sr-only">Toggle Sidebar</span>
+                </Button>
+            </SheetTrigger>
         )
     }
 )
 SidebarTrigger.displayName = 'SidebarTrigger';
 
 export const SidebarInset = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-    ({ className, ...props }, ref) => {
-        return <div ref={ref} className={cn('flex-1', className)} {...props} />
+    ({ className, children, ...props }, ref) => {
+        const isMobile = useIsMobile();
+        return (
+            <div ref={ref} className={cn('flex-1 flex flex-col', className)} {...props}>
+                {isMobile && (
+                    <header className="flex items-center justify-end p-4 border-b md:hidden">
+                        <SidebarTrigger />
+                    </header>
+                )}
+                <div className="flex-1 overflow-y-auto">
+                    {children}
+                </div>
+            </div>
+        )
     }
 );
 SidebarInset.displayName = 'SidebarInset';
