@@ -1,7 +1,7 @@
 
 'use server';
 
-import { initializeApp, getApp, getApps, cert, type App, type ServiceAccount } from 'firebase-admin/app';
+import { initializeApp, getApp, getApps, cert, type App } from 'firebase-admin/app';
 import { getAuth, type Auth } from 'firebase-admin/auth';
 import { getFirestore, type Firestore } from 'firebase-admin/firestore';
 import fs from 'fs';
@@ -26,9 +26,11 @@ export async function getFirebaseAdmin(): Promise<FirebaseAdmin> {
   if (getApps().length > 0) {
     log('Firebase Admin SDK already initialized. Returning existing instance.');
     const app = getApp();
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    return { app, auth, db };
+    return {
+      app,
+      auth: getAuth(app),
+      db: getFirestore(app),
+    };
   }
   
   const projectId = process.env.FIREBASE_PROJECT_ID;
@@ -47,16 +49,14 @@ export async function getFirebaseAdmin(): Promise<FirebaseAdmin> {
     throw new Error(errorMsg);
   }
 
-  const serviceAccount: ServiceAccount = {
-    projectId,
-    clientEmail,
-    privateKey,
-  };
-  
   try {
     log(`Initializing default app...`);
     const app = initializeApp({
-        credential: cert(serviceAccount),
+        credential: cert({
+          projectId,
+          clientEmail,
+          privateKey,
+        }),
     });
 
     const auth = getAuth(app);

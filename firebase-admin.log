@@ -14,3 +14,13 @@
 2025-07-17T21:07:24.763Z: Error in addConnection: Expected first argument to collection() to be a CollectionReference, a DocumentReference or FirebaseFirestore
 2025-07-17T21:07:24.764Z: Stack trace: FirebaseError: Expected first argument to collection() to be a CollectionReference, a DocumentReference or FirebaseFirestore
 2025-07-17T21:07:24.764Z: --- End of addConnection server action with error ---
+2025-07-17T21:10:04.304Z: --- Inside addConnection server action ---
+2025-07-17T21:10:04.305Z: --- getFirebaseAdmin() called ---
+2025-07-17T21:10:04.305Z: Firebase Admin SDK already initialized. Returning existing instance.
+2025-07-17T21:10:04.305Z: Value received for "db" from getFirebaseAdmin(): {"projectId":"quick-link-f2a65"}
+2025-07-17T21:10:04.305Z: Type of "db": object
+2025-07-17T21:10:04.306Z: Keys of "db" object: _settings,_settingsFrozen,_serializer,_projectId,_databaseId,registeredListenersCount,bulkWritersCount,_traceUtil,_backoffSettings,_clientPool
+2025-07-17T21:10:04.310Z: Attempting to access "connections" collection...
+2025-07-17T21:10:04.311Z: Error in addConnection: Expected first argument to collection() to be a CollectionReference, a DocumentReference or FirebaseFirestore
+2025-07-17T21:10:04.311Z: Stack trace: FirebaseError: Expected first argument to collection() to be a CollectionReference, a DocumentReference or FirebaseFirestore
+2025-07-17T21:10:04.311Z: --- End of addConnection server action with error ---

@@ -3,7 +3,7 @@
 
 import { z } from 'zod';
 import { getFirebaseAdmin } from '@/lib/firebase/server';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { Timestamp } from 'firebase-admin/firestore';
 import { revalidatePath } from 'next/cache';
 import fs from 'fs';
 import path from 'path';
@@ -65,17 +65,13 @@ const connectionSchema = z.object({
 
 export async function addConnection(data: unknown) {
   log('--- Inside addConnection server action ---');
-  let db;
   try {
-    const admin = await getFirebaseAdmin();
-    db = admin.db;
-    
+    const { db } = await getFirebaseAdmin();
     log(`Value received for "db" from getFirebaseAdmin(): ${JSON.stringify(db)}`);
     log(`Type of "db": ${typeof db}`);
     if (db) {
       log(`Keys of "db" object: ${Object.keys(db)}`);
     }
-
 
     if (!db) {
         throw new Error('Database not initialized correctly. The "db" object is falsy.');
@@ -95,11 +91,12 @@ export async function addConnection(data: unknown) {
 
     const connectionData = {
       ...validatedFields.data,
-      createdAt: serverTimestamp(),
+      createdAt: Timestamp.now(),
     };
 
-    log('Attempting to access "connections" collection...');
-    await addDoc(collection(db, 'connections'), connectionData);
+    log('Attempting to access "connections" collection using Admin SDK...');
+    const connectionsCollectionRef = db.collection('connections');
+    await connectionsCollectionRef.add(connectionData);
     log('Successfully added document to "connections" collection.');
     
     if (validatedFields.data.associatedCompany === 'Mohan Coaching') {
