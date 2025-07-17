@@ -44,7 +44,7 @@ export async function signUpWithEmail(prevState: any, formData: FormData) {
       password,
     });
     return { success: true, message: 'User created successfully.' };
-  } catch (error: any) => {
+  } catch (error: any) {
     return { success: false, message: error.message };
   }
 }
