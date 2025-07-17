@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { useAuth } from '@/hooks/use-auth';
 import { addConnection } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
+import { addDays, addWeeks, addMonths } from 'date-fns';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -81,6 +82,10 @@ export function AddConnectionForm({ onSuccess }: AddConnectionFormProps) {
 
   const watchedTags = form.watch('tags');
   const isReferral = watchedTags?.includes('Referral');
+
+  const setReminderDate = (date: Date) => {
+    form.setValue('reminderDate', date, { shouldValidate: true });
+  };
 
   async function onSubmit(values: FormValues) {
     if (!user) {
@@ -260,6 +265,11 @@ export function AddConnectionForm({ onSuccess }: AddConnectionFormProps) {
               <FormControl>
                 <DatePicker value={field.value} onChange={field.onChange} />
               </FormControl>
+              <div className="flex space-x-2 pt-2">
+                <Button type="button" size="sm" variant="outline" onClick={() => setReminderDate(addDays(new Date(), 3))}>3 days</Button>
+                <Button type="button" size="sm" variant="outline" onClick={() => setReminderDate(addWeeks(new Date(), 1))}>1 week</Button>
+                <Button type="button" size="sm" variant="outline" onClick={() => setReminderDate(addMonths(new Date(), 3))}>3 months</Button>
+              </div>
               <FormMessage />
             </FormItem>
           )}
