@@ -90,27 +90,6 @@ export async function addConnection(data: unknown) {
 
     await db.collection('connections').add(connectionData);
     
-    // --- ZAPIER / GOHIGHLEVEL INTEGRATION ---
-    if (validatedFields.data.associatedCompany === 'Mohan Coaching') {
-      try {
-        // =======================================================================
-        // IMPORTANT: PASTE YOUR ZAPIER WEBHOOK URL HERE!
-        // This code sends the new connection data to Zapier. You don't need to
-        // query Firestore from Zapier; just use the "Catch Hook" trigger.
-        // =======================================================================
-        const webhookUrl = 'https://hooks.zapier.com/hooks/catch/123456/abcdef'; // <--- REPLACE THIS URL
-        
-        await fetch(webhookUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(connectionData),
-        });
-      } catch (error) {
-          console.error("Failed to trigger webhook for GoHighLevel/Zapier:", error);
-          // Non-blocking error, so we don't return a failure response
-      }
-    }
-    
     revalidatePath('/dashboard');
     return { success: true, message: 'Connection added successfully.' };
   } catch (error: any) {
