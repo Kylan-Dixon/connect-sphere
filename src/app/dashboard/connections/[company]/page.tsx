@@ -9,6 +9,9 @@ import { db } from '@/lib/firebase/client';
 import { type Connection } from '@/lib/types';
 import { ConnectionsTable } from '@/components/connections/connections-table';
 import { columns } from '@/components/connections/columns';
+import { BulkUpload } from '@/components/connections/bulk-upload';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 
 export default function CompanyConnectionsPage() {
   const { user } = useAuth();
@@ -20,7 +23,7 @@ export default function CompanyConnectionsPage() {
   const companyName = companySlug
     .split('-')
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+    .join(' ') as 'Mohan Financial' | 'Mohan Coaching';
 
   useEffect(() => {
     if (!user) return;
@@ -49,10 +52,24 @@ export default function CompanyConnectionsPage() {
   }, [user, companyName]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-8">
       <h2 className="text-3xl font-bold tracking-tight font-headline">
         {companyName} Connections
       </h2>
+      <Card>
+        <CardHeader>
+          <CardTitle>Bulk Upload</CardTitle>
+          <CardDescription>
+            Upload an Excel or CSV file to add multiple connections for {companyName}.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <BulkUpload associatedCompany={companyName} />
+        </CardContent>
+      </Card>
+
+      <Separator />
+      
       <ConnectionsTable columns={columns} data={connections} loading={loading} />
     </div>
   );

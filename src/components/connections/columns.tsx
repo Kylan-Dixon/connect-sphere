@@ -34,6 +34,14 @@ export const columns: ColumnDef<Connection>[] = [
     cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
   },
   {
+    accessorKey: 'email',
+    header: 'Email',
+  },
+  {
+    accessorKey: 'phoneNumber',
+    header: 'Phone',
+  },
+  {
     accessorKey: 'company',
     header: 'Company',
   },

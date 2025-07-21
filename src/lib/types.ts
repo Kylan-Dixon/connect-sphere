@@ -3,6 +3,8 @@ import { type Timestamp } from 'firebase/firestore';
 export type Connection = {
   id: string;
   name: string;
+  email?: string;
+  phoneNumber?: string;
   linkedInUrl?: string;
   company?: string;
   title?: string;

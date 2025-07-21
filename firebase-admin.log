@@ -22,3 +22,11 @@
 2025-07-17T21:36:35.020Z: Keys of "db" object: _settings,_settingsFrozen,_serializer,_projectId,_databaseId,registeredListenersCount,bulkWritersCount,_traceUtil,_backoffSettings,_clientPool,_gax
 2025-07-17T21:36:35.024Z: Attempting to access "connections" collection using Admin SDK...
 2025-07-17T21:36:35.171Z: Successfully added document to "connections" collection.
+2025-07-21T20:40:52.252Z: --- getFirebaseAdmin() called ---
+2025-07-21T20:40:52.266Z: Attempting to initialize Firebase Admin for the first time...
+2025-07-21T20:40:52.267Z: Project ID provided: true
+2025-07-21T20:40:52.267Z: Client Email provided: true
+2025-07-21T20:40:52.267Z: Private Key provided: true
+2025-07-21T20:40:52.267Z: Initializing default app...
+2025-07-21T20:40:52.839Z: Firebase Admin SDK initialized successfully.
+2025-07-21T20:40:52.839Z: --- getFirebaseAdmin() finished ---

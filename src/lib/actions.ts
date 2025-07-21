@@ -53,6 +53,8 @@ export async function signUpWithEmail(prevState: any, formData: FormData) {
 
 const connectionSchema = z.object({
   name: z.string().min(1, 'Name is required'),
+  email: z.string().email().optional().or(z.literal('')),
+  phoneNumber: z.string().optional(),
   linkedInUrl: z.string().url('Invalid LinkedIn URL').optional().or(z.literal('')),
   company: z.string().optional(),
   title: z.string().optional(),
@@ -94,7 +96,7 @@ export async function addConnection(data: unknown) {
     
     // Option 1: Firestore Query (Free Zapier Tier)
     // Use the following JSON query in Zapier's "New Document in Collection" trigger
-    // to find new connections for Mohan Coaching.
+    // to find new connections for Mohan Coaching. This is the recommended approach for the free tier.
     /*
     {
       "where": {
@@ -148,5 +150,56 @@ export async function addConnection(data: unknown) {
     return { success: true, message: 'Connection added successfully.' };
   } catch (error: any) {
      return { success: false, message: `Failed to add connection: ${error.message}` };
+  }
+}
+
+
+const bulkConnectionSchema = z.array(z.object({
+    name: z.string().min(1),
+    email: z.string().email().optional().or(z.literal('')),
+    phoneNumber: z.string().optional(),
+    company: z.string().optional(),
+    title: z.string().optional(),
+    notes: z.string().optional(),
+}));
+
+export async function addBulkConnections(
+  userId: string,
+  associatedCompany: 'Mohan Financial' | 'Mohan Coaching',
+  data: unknown
+) {
+  try {
+    const { db } = await getFirebaseAdmin();
+    const validatedFields = bulkConnectionSchema.safeParse(data);
+
+    if (!validatedFields.success) {
+      return {
+        success: false,
+        message: 'Invalid data format. Please check your file.',
+        errors: validatedFields.error.flatten().fieldErrors,
+      };
+    }
+
+    const batch = db.batch();
+    let count = 0;
+
+    for (const item of validatedFields.data) {
+      const newConnectionRef = db.collection('connections').doc();
+      batch.set(newConnectionRef, {
+        ...item,
+        userId,
+        associatedCompany,
+        createdAt: Timestamp.now(),
+      });
+      count++;
+    }
+
+    await batch.commit();
+    revalidatePath('/dashboard');
+    revalidatePath(`/dashboard/connections/${associatedCompany.toLowerCase().replace(' ', '-')}`);
+    
+    return { success: true, message: `${count} connections added successfully.` };
+  } catch (error: any) {
+    return { success: false, message: `Failed to add bulk connections: ${error.message}` };
   }
 }

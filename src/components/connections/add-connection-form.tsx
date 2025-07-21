@@ -37,6 +37,8 @@ const formSchema = z.object({
   name: z.string().min(2, {
     message: 'Name must be at least 2 characters.',
   }),
+  email: z.string().email({ message: 'Please enter a valid email.' }).optional().or(z.literal('')),
+  phoneNumber: z.string().optional(),
   linkedInUrl: z.string().url({ message: 'Please enter a valid URL.' }).optional().or(z.literal('')),
   company: z.string().optional(),
   title: z.string().optional(),
@@ -71,6 +73,8 @@ export function AddConnectionForm({ onSuccess }: AddConnectionFormProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
+      email: '',
+      phoneNumber: '',
       linkedInUrl: '',
       company: '',
       title: '',
@@ -131,6 +135,32 @@ export function AddConnectionForm({ onSuccess }: AddConnectionFormProps) {
               <FormLabel>Name</FormLabel>
               <FormControl>
                 <Input placeholder="John Doe" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+         <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input placeholder="john.doe@example.com" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+         <FormField
+          control={form.control}
+          name="phoneNumber"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Phone Number</FormLabel>
+              <FormControl>
+                <Input placeholder="(123) 456-7890" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
