@@ -88,8 +88,62 @@ export async function addConnection(data: unknown) {
         delete (connectionData as Partial<typeof connectionData>).referrerName;
     }
 
-    await db.collection('connections').add(connectionData);
+    const newConnectionRef = await db.collection('connections').add(connectionData);
     
+    // --- ZAPIER / GOHIGHLEVEL INTEGRATION ---
+    
+    // Option 1: Firestore Query (Free Zapier Tier)
+    // Use the following JSON query in Zapier's "New Document in Collection" trigger
+    // to find new connections for Mohan Coaching.
+    /*
+    {
+      "where": {
+        "fieldFilter": {
+          "field": {
+            "fieldPath": "associatedCompany"
+          },
+          "op": "EQUAL",
+          "value": {
+            "stringValue": "Mohan Coaching"
+          }
+        }
+      },
+      "orderBy": [
+        {
+          "field": {
+            "fieldPath": "createdAt"
+          },
+          "direction": "DESCENDING"
+        }
+      ]
+    }
+    */
+
+    // Option 2: Webhook (Paid Zapier Tier)
+    // This is currently commented out. To use it, uncomment the code below
+    // and replace the placeholder URL with your actual Zapier Webhook URL.
+    /*
+    if (connectionData.associatedCompany === 'Mohan Coaching') {
+      const webhookUrl = 'https://hooks.zapier.com/hooks/catch/YOUR_WEBHOOK_ID_HERE/';
+      try {
+        await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: newConnectionRef.id,
+            ...connectionData,
+            // Convert timestamp to a Zapier-friendly format
+            createdAt: connectionData.createdAt.toDate().toISOString(), 
+            reminderDate: connectionData.reminderDate ? connectionData.reminderDate.toISOString() : null,
+          }),
+        });
+      } catch (webhookError: any) {
+        // Log the error but don't block the main operation
+        console.error('Failed to send webhook:', webhookError.message);
+      }
+    }
+    */
+
     revalidatePath('/dashboard');
     return { success: true, message: 'Connection added successfully.' };
   } catch (error: any) {
