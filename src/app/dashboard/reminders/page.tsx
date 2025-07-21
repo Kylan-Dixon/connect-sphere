@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -45,7 +46,7 @@ export default function RemindersPage() {
         All Reminders
       </h2>
       <p className="text-muted-foreground">
-        Showing all connections with a reminder date, sorted by the soonest.
+        Showing all connections with a reminder date, sorted from most upcoming to farthest away.
       </p>
       <ConnectionsTable columns={columns} data={reminders} loading={loading} />
     </div>
