@@ -57,7 +57,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         // Check if user is authorized before creating account
         const authCheck = await isUserAuthorized(data.email);
         if (!authCheck.success) {
-            throw new Error(authCheck.message || 'This email address is not authorized for access.');
+            throw new Error('This email is not authorized. Please contact an administrator to be added to the whitelist.');
         }
         await createUserWithEmailAndPassword(auth, data.email, data.password);
       }
