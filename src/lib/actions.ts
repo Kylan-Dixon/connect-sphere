@@ -17,6 +17,23 @@ function log(message: string) {
 
 
 // --- AUTH ACTIONS ---
+
+export async function isUserAuthorized(email: string) {
+    try {
+        const { db } = await getFirebaseAdmin();
+        const authorizedUserRef = db.collection('authorized_users').doc(email);
+        const doc = await authorizedUserRef.get();
+
+        if (doc.exists) {
+            return { success: true, message: 'User is authorized.' };
+        } else {
+            return { success: false, message: 'This email is not authorized for access.' };
+        }
+    } catch (error: any) {
+        return { success: false, message: 'An error occurred during authorization check.' };
+    }
+}
+
 // Note: Sign-up and sign-in are primarily handled client-side for this app.
 // These server actions are here as examples but are not actively used by the auth form.
 

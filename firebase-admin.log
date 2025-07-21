@@ -30,3 +30,11 @@
 2025-07-21T20:40:52.267Z: Initializing default app...
 2025-07-21T20:40:52.839Z: Firebase Admin SDK initialized successfully.
 2025-07-21T20:40:52.839Z: --- getFirebaseAdmin() finished ---
+2025-07-21T21:59:45.319Z: --- getFirebaseAdmin() called ---
+2025-07-21T21:59:45.320Z: Attempting to initialize Firebase Admin for the first time...
+2025-07-21T21:59:45.320Z: Project ID provided: true
+2025-07-21T21:59:45.320Z: Client Email provided: true
+2025-07-21T21:59:45.320Z: Private Key provided: true
+2025-07-21T21:59:45.320Z: Initializing default app...
+2025-07-21T21:59:45.627Z: Firebase Admin SDK initialized successfully.
+2025-07-21T21:59:45.627Z: --- getFirebaseAdmin() finished ---

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useFormState } from 'react-dom';
@@ -9,6 +10,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useEffect } from 'react';
+import { isUserAuthorized } from '@/lib/actions';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,6 +54,11 @@ export function AuthForm({ mode }: AuthFormProps) {
       if (isLogin) {
         await signInWithEmailAndPassword(auth, data.email, data.password);
       } else {
+        // Check if user is authorized before creating account
+        const authCheck = await isUserAuthorized(data.email);
+        if (!authCheck.success) {
+            throw new Error(authCheck.message || 'This email address is not authorized for access.');
+        }
         await createUserWithEmailAndPassword(auth, data.email, data.password);
       }
       toast({
