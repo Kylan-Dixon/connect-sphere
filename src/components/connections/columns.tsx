@@ -3,7 +3,7 @@
 
 import { type ColumnDef } from '@tanstack/react-table';
 import { type Connection } from '@/lib/types';
-import { ArrowUpDown, MoreHorizontal, ExternalLink } from 'lucide-react';
+import { ArrowUpDown, MoreHorizontal, ExternalLink, Edit } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
+import { EditConnectionSheet } from './edit-connection-sheet';
 
 export const columns: ColumnDef<Connection>[] = [
   {
@@ -92,6 +93,9 @@ export const columns: ColumnDef<Connection>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
+             <DropdownMenuItem asChild>
+                <EditConnectionSheet connection={connection} />
+            </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => navigator.clipboard.writeText(connection.id)}
             >

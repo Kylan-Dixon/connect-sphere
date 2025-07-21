@@ -63,14 +63,17 @@ const connectionSchema = z.object({
   referrerName: z.string().optional(),
   reminderDate: z.coerce.date().optional(),
   notes: z.string().optional(),
-  userId: z.string(),
+});
+
+const addConnectionSchema = connectionSchema.extend({
+    userId: z.string(),
 });
 
 export async function addConnection(data: unknown) {
   try {
     const { db } = await getFirebaseAdmin();
 
-    const validatedFields = connectionSchema.safeParse(data);
+    const validatedFields = addConnectionSchema.safeParse(data);
 
     if (!validatedFields.success) {
       const errorDetails = validatedFields.error.flatten().fieldErrors;
@@ -151,6 +154,42 @@ export async function addConnection(data: unknown) {
   } catch (error: any) {
      return { success: false, message: `Failed to add connection: ${error.message}` };
   }
+}
+
+export async function updateConnection(id: string, data: unknown) {
+    try {
+        const { db } = await getFirebaseAdmin();
+
+        const validatedFields = connectionSchema.safeParse(data);
+        if (!validatedFields.success) {
+            return {
+                success: false,
+                message: "Invalid data provided.",
+                errors: validatedFields.error.flatten().fieldErrors
+            };
+        }
+        
+        const connectionData = validatedFields.data;
+
+        if (!connectionData.tags?.includes('Referral')) {
+            (connectionData as Partial<typeof connectionData>).referrerName = undefined;
+        }
+
+        await db.collection('connections').doc(id).update({
+            ...connectionData,
+             // Firestore expects its own Timestamp object for dates
+            reminderDate: connectionData.reminderDate ? Timestamp.fromDate(connectionData.reminderDate) : null,
+            updatedAt: Timestamp.now(),
+        });
+
+        revalidatePath('/dashboard');
+        revalidatePath(`/dashboard/connections/${connectionData.associatedCompany.toLowerCase().replace(/\s/g, '-')}`);
+        revalidatePath('/dashboard/reminders');
+
+        return { success: true, message: 'Connection updated successfully.' };
+    } catch (error: any) {
+        return { success: false, message: `Failed to update connection: ${error.message}` };
+    }
 }
 
 
