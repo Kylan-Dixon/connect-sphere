@@ -40,7 +40,7 @@ export const Sidebar = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTM
     if (isMobile) {
       return (
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
-          <SheetContent side="left" className="w-[280px] p-0">
+          <SheetContent side="left" className="w-[280px] p-0" closeIcon={false}>
              <div className="flex h-full flex-col bg-card text-card-foreground">
                 {children}
             </div>
@@ -114,13 +114,12 @@ SidebarMenuButton.displayName = 'SidebarMenuButton';
 
 export const SidebarTrigger = React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement>>(
     (props, ref) => {
+        const { setIsOpen } = useSidebar();
         return (
-            <SheetTrigger asChild>
-                    <Button ref={ref} variant="ghost" size="icon" {...props}>
-                    <PanelLeft />
-                    <span className="sr-only">Toggle Sidebar</span>
-                </Button>
-            </SheetTrigger>
+            <Button ref={ref} variant="ghost" size="icon" {...props} onClick={() => setIsOpen(true)}>
+                <PanelLeft />
+                <span className="sr-only">Toggle Sidebar</span>
+            </Button>
         )
     }
 )
@@ -132,8 +131,14 @@ export const SidebarInset = React.forwardRef<HTMLDivElement, React.HTMLAttribute
         return (
             <div ref={ref} className={cn('flex-1 flex flex-col', className)} {...props}>
                 {isMobile && (
-                    <header className="flex items-center justify-end p-4 border-b md:hidden">
-                        <SidebarTrigger />
+                    <header className="flex items-center justify-between p-4 border-b md:hidden">
+                        <Logo />
+                        <SheetTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                                <PanelLeft />
+                                <span className="sr-only">Toggle Sidebar</span>
+                            </Button>
+                        </SheetTrigger>
                     </header>
                 )}
                 <div className="flex-1 overflow-y-auto">
@@ -151,3 +156,17 @@ export const SidebarSeparator = React.forwardRef<HTMLHRElement, React.HTMLAttrib
     }
 );
 SidebarSeparator.displayName = 'SidebarSeparator';
+
+// Add Logo to prevent circular dependency
+import { Share2 } from 'lucide-react';
+
+export function Logo() {
+  return (
+    <div className="flex items-center justify-center gap-2 text-primary">
+      <Share2 className="h-6 w-6" />
+      <span className="font-headline text-xl font-bold tracking-tighter">
+        ConnectSphere
+      </span>
+    </div>
+  );
+}
