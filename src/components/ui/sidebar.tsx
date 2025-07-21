@@ -53,7 +53,7 @@ export const Sidebar = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTM
       <aside
         ref={ref}
         className={cn(
-          'hidden md:flex flex-col h-screen border-r bg-card text-card-foreground transition-all duration-300 ease-in-out',
+          'hidden md:flex flex-col h-screen border-r bg-card text-card-foreground transition-all duration-300 ease-in-out sticky top-0',
           isOpen ? 'w-72' : 'w-20',
           className
         )}
