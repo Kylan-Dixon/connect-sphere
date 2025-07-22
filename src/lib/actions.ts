@@ -251,6 +251,7 @@ export async function addBulkConnections(
         ...connectionData,
         userId,
         associatedCompany,
+        tags: ['Connection'],
         createdAt: Timestamp.now(),
       });
       count++;
