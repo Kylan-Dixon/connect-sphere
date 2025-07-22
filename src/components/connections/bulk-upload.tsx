@@ -10,14 +10,41 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2, Upload } from 'lucide-react';
-import { type Connection } from '@/lib/types';
 
 interface BulkUploadProps {
   associatedCompany: 'Mohan Financial' | 'Mohan Coaching';
 }
 
-const REQUIRED_HEADERS = ['name'];
-const OPTIONAL_HEADERS = ['email', 'phoneNumber', 'company', 'title', 'notes'];
+// Maps possible CSV header names to our application's data model keys.
+const headerMapping: { [key: string]: keyof MappedConnection } = {
+  'first name': 'firstName',
+  'last name': 'lastName',
+  'name': 'name',
+  'url': 'linkedInUrl',
+  'linkedin profile url': 'linkedInUrl',
+  'email': 'email',
+  'email address': 'email',
+  'phone': 'phoneNumber',
+  'phone number': 'phoneNumber',
+  'company': 'company',
+  'current company': 'company',
+  'position': 'title',
+  'title': 'title',
+  'job title': 'title',
+  'notes': 'notes',
+};
+
+type MappedConnection = {
+    name?: string;
+    firstName?: string;
+    lastName?: string;
+    linkedInUrl?: string;
+    email?: string;
+    phoneNumber?: string;
+    company?: string;
+    title?: string;
+    notes?: string;
+}
 
 export function BulkUpload({ associatedCompany }: BulkUploadProps) {
   const { user } = useAuth();
@@ -50,31 +77,36 @@ export function BulkUpload({ associatedCompany }: BulkUploadProps) {
         const workbook = XLSX.read(data, { type: 'array' });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' }) as any[][];
 
         if (jsonData.length < 2) {
           throw new Error('Spreadsheet must contain a header row and at least one data row.');
         }
 
-        const headers = (jsonData[0] as string[]).map(h => h.trim().toLowerCase());
-        const missingHeaders = REQUIRED_HEADERS.filter(h => !headers.includes(h));
-        if (missingHeaders.length > 0) {
-            throw new Error(`Missing required columns: ${missingHeaders.join(', ')}.`);
-        }
-
-        const dataRows = jsonData.slice(1).map(row => {
-            const rowData: { [key: string]: any } = {};
+        const headers = (jsonData[0] as string[]).map(h => String(h).trim().toLowerCase());
+        
+        const mappedData = jsonData.slice(1).map(row => {
+            const connection: MappedConnection = {};
             headers.forEach((header, index) => {
-                if (REQUIRED_HEADERS.includes(header) || OPTIONAL_HEADERS.includes(header)) {
-                    // Map spreadsheet header to our data model keys
-                    const key = header === 'phonenumber' ? 'phoneNumber' : header;
-                    rowData[key] = row[index] || '';
+                const mappedKey = headerMapping[header];
+                if (mappedKey) {
+                    connection[mappedKey] = row[index];
                 }
             });
-            return rowData;
-        });
-        
-        const result = await addBulkConnections(user.uid, associatedCompany, dataRows);
+            
+            // Combine First and Last Name if they exist
+            if (connection.firstName && connection.lastName) {
+                connection.name = `${connection.firstName} ${connection.lastName}`;
+            }
+
+            return connection;
+        }).filter(c => c.name); // Filter out rows without a name
+
+        if (mappedData.length === 0) {
+            throw new Error('No valid connections with a name could be found in the file. Please ensure the file has a "Name" column or "First Name" and "Last Name" columns.');
+        }
+
+        const result = await addBulkConnections(user.uid, associatedCompany, mappedData);
 
         if (result.success) {
           toast({
@@ -82,6 +114,10 @@ export function BulkUpload({ associatedCompany }: BulkUploadProps) {
             description: result.message,
           });
           setFile(null);
+          // Reset file input
+          const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+          if(fileInput) fileInput.value = '';
+
         } else {
           throw new Error(result.message || 'Failed to upload connections.');
         }
@@ -101,7 +137,7 @@ export function BulkUpload({ associatedCompany }: BulkUploadProps) {
   return (
     <div className="space-y-4">
       <div>
-        <Label htmlFor="file-upload">Upload Spreadsheet</Label>
+        <Label htmlFor="file-upload">Upload LinkedIn Export or Custom CSV/Excel</Label>
         <Input
           id="file-upload"
           type="file"
@@ -111,7 +147,7 @@ export function BulkUpload({ associatedCompany }: BulkUploadProps) {
           disabled={isUploading}
         />
         <p className="text-sm text-muted-foreground mt-2">
-            Required columns: {REQUIRED_HEADERS.join(', ')}. Optional columns: {OPTIONAL_HEADERS.join(', ')}.
+            Directly upload your `Connections.csv` from LinkedIn. The uploader will automatically recognize columns like: First/Last Name, URL, Company, Position, and Email. A 'Name' or 'First/Last Name' column is required.
         </p>
       </div>
       <Button onClick={handleUpload} disabled={!file || isUploading}>

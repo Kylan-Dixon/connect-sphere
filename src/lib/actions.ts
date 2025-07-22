@@ -27,7 +27,7 @@ export async function isUserAuthorized(email: string) {
         if (doc.exists) {
             return { success: true, message: 'User is authorized.' };
         } else {
-            return { success: false, message: 'This email is not authorized for access.' };
+            return { success: false, message: 'This email is not authorized. Please contact an administrator to be added to the whitelist.' };
         }
     } catch (error: any) {
         return { success: false, message: 'An error occurred during authorization check.' };
@@ -214,10 +214,11 @@ const bulkConnectionSchema = z.array(z.object({
     name: z.string().min(1),
     email: z.string().email().optional().or(z.literal('')),
     phoneNumber: z.string().optional(),
+    linkedInUrl: z.string().url().optional().or(z.literal('')),
     company: z.string().optional(),
     title: z.string().optional(),
     notes: z.string().optional(),
-}));
+}).passthrough()); // Use passthrough to ignore extra fields like firstName, lastName
 
 export async function addBulkConnections(
   userId: string,
@@ -229,9 +230,11 @@ export async function addBulkConnections(
     const validatedFields = bulkConnectionSchema.safeParse(data);
 
     if (!validatedFields.success) {
+      // Log the detailed error for debugging
+      console.error("Bulk upload validation error:", JSON.stringify(validatedFields.error.flatten(), null, 2));
       return {
         success: false,
-        message: 'Invalid data format. Please check your file.',
+        message: 'Invalid data format. Please check your file and column names.',
         errors: validatedFields.error.flatten().fieldErrors,
       };
     }
@@ -240,9 +243,12 @@ export async function addBulkConnections(
     let count = 0;
 
     for (const item of validatedFields.data) {
+      // Clean up the object before saving to Firestore
+      const { firstName, lastName, ...connectionData } = item;
+      
       const newConnectionRef = db.collection('connections').doc();
       batch.set(newConnectionRef, {
-        ...item,
+        ...connectionData,
         userId,
         associatedCompany,
         createdAt: Timestamp.now(),
@@ -256,6 +262,7 @@ export async function addBulkConnections(
     
     return { success: true, message: `${count} connections added successfully.` };
   } catch (error: any) {
+    console.error("Error in addBulkConnections:", error);
     return { success: false, message: `Failed to add bulk connections: ${error.message}` };
   }
 }
