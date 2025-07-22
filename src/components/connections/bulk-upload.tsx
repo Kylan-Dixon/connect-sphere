@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Upload, ArrowLeft, ArrowRight, Table as TableIcon } from 'lucide-react';
+import { Loader2, Upload, ArrowLeft, Table as TableIcon } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -90,7 +90,6 @@ export function BulkUpload({ associatedCompany }: BulkUploadProps) {
       }
       
       const fileHeaders = (json[0] as string[]).map(h => String(h || '').trim());
-      setHeaders(fileHeaders);
       
       const fileJsonData = XLSX.utils.sheet_to_json(worksheet, {defval: ''});
       
@@ -99,21 +98,24 @@ export function BulkUpload({ associatedCompany }: BulkUploadProps) {
       const lastNameIndex = fileHeaders.findIndex(h => h.toLowerCase() === 'last name');
       const nameIndex = fileHeaders.findIndex(h => h.toLowerCase() === 'name');
 
+      let combinedData = fileJsonData;
+      let finalHeaders = [...fileHeaders];
+
       if (firstNameIndex !== -1 && lastNameIndex !== -1 && nameIndex === -1) {
         // If we have First/Last Name but not a combined Name, create one.
-        const combinedData = fileJsonData.map((row: any) => ({
+        combinedData = fileJsonData.map((row: any) => ({
             ...row,
             "Name (Combined)": `${row[fileHeaders[firstNameIndex]] || ''} ${row[fileHeaders[lastNameIndex]] || ''}`.trim()
         }));
-        setJsonData(combinedData);
-        setHeaders(prev => [...prev, 'Name (Combined)']);
-      } else {
-        setJsonData(fileJsonData);
+        finalHeaders.push('Name (Combined)');
       }
+      
+      setHeaders(finalHeaders);
+      setJsonData(combinedData);
 
       // Auto-map headers
       const initialMapping: { [key: string]: MappedField | 'ignore' } = {};
-       [...fileHeaders, "Name (Combined)"].forEach(header => {
+      finalHeaders.forEach(header => {
         const suggestion = headerMappingSuggestions[header.toLowerCase()];
         initialMapping[header] = suggestion || 'ignore';
       });
@@ -276,10 +278,10 @@ export function BulkUpload({ associatedCompany }: BulkUploadProps) {
             
             <div className="flex justify-between items-center">
               <Button variant="outline" onClick={resetState}>
-                <ArrowLeft/> Back
+                <ArrowLeft className="mr-2 h-4 w-4"/> Back
               </Button>
               <Button onClick={handleUpload}>
-                <Upload/> Confirm and Import Connections
+                <Upload className="mr-2 h-4 w-4"/> Confirm and Import Connections
               </Button>
             </div>
           </div>
@@ -309,4 +311,3 @@ export function BulkUpload({ associatedCompany }: BulkUploadProps) {
 
   return <div className="w-full">{renderContent()}</div>;
 }
-

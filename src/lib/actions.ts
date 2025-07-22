@@ -241,15 +241,36 @@ export async function addBulkConnections(data: unknown) {
     let count = 0;
 
     const reverseMapping: { [key in MappedField]?: string } = {};
-    for (const key in mapping) {
-        if(mapping[key] !== 'ignore') {
-            reverseMapping[mapping[key]] = key;
+    for (const header in mapping) {
+        const field = mapping[header];
+        if (field !== 'ignore') {
+            // Allow multiple source headers to map to the same destination field,
+            // but we'll prioritize the one that appears first in a typical file.
+            // This is especially for 'First Name' + 'Last Name' -> 'name'.
+            if (!reverseMapping[field]) {
+                 reverseMapping[field] = header;
+            }
         }
     }
 
+
     for (const row of jsonData) {
-        const nameHeader = reverseMapping['name'];
-        if (!nameHeader || !row[nameHeader]) {
+        let name = '';
+        const nameHeader = Object.keys(mapping).find(h => mapping[h] === 'name');
+        
+        // Special handling for combined name from First Name + Last Name
+        const firstNameHeader = Object.keys(mapping).find(h => h.toLowerCase() === 'first name');
+        const lastNameHeader = Object.keys(mapping).find(h => h.toLowerCase() === 'last name');
+        const combinedNameHeader = "Name (Combined)";
+        const hasCombinedMapping = mapping[combinedNameHeader] === 'name';
+
+        if (hasCombinedMapping && row[combinedNameHeader]) {
+             name = row[combinedNameHeader];
+        } else if (nameHeader && row[nameHeader]) {
+            name = row[nameHeader];
+        }
+
+        if (!name) {
             continue; // Skip rows without a name
         }
 
@@ -258,14 +279,17 @@ export async function addBulkConnections(data: unknown) {
             associatedCompany,
             createdAt: Timestamp.now(),
             tags: ['Connection'],
+            name: name
         };
+        
+        // Map all other fields
+        for (const field in reverseMapping) {
+            const headerKey = field as MappedField;
+            if (headerKey === 'name') continue; // Already handled name
 
-        for (const field of mappedField.options) {
-            if (field === 'ignore' || !reverseMapping[field]) continue;
-            
-            const header = reverseMapping[field];
-            if(header && row[header]) {
-                 connectionData[field] = row[header];
+            const header = reverseMapping[headerKey];
+            if (header && row[header]) {
+                 connectionData[headerKey] = row[header];
             }
         }
         
