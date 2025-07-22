@@ -210,51 +210,72 @@ export async function updateConnection(id: string, data: unknown) {
 }
 
 
-const bulkConnectionSchema = z.array(z.object({
-    name: z.string().min(1),
-    email: z.string().email().optional().or(z.literal('')),
-    phoneNumber: z.string().optional(),
-    linkedInUrl: z.string().url().optional().or(z.literal('')),
-    company: z.string().optional(),
-    title: z.string().optional(),
-    notes: z.string().optional(),
-}).passthrough()); // Use passthrough to ignore extra fields like firstName, lastName
+const mappedField = z.enum([
+    'name', 'email', 'phoneNumber', 'linkedInUrl', 'company', 'title', 'notes', 'ignore'
+]);
+type MappedField = z.infer<typeof mappedField>;
 
-export async function addBulkConnections(
-  userId: string,
-  associatedCompany: 'Mohan Financial' | 'Mohan Coaching',
-  data: unknown
-) {
+const bulkUploadSchema = z.object({
+  userId: z.string(),
+  associatedCompany: z.enum(['Mohan Financial', 'Mohan Coaching']),
+  jsonData: z.array(z.record(z.any())),
+  mapping: z.record(mappedField),
+});
+
+export async function addBulkConnections(data: unknown) {
   try {
     const { db } = await getFirebaseAdmin();
-    const validatedFields = bulkConnectionSchema.safeParse(data);
+    const validatedRequest = bulkUploadSchema.safeParse(data);
 
-    if (!validatedFields.success) {
-      // Log the detailed error for debugging
-      console.error("Bulk upload validation error:", JSON.stringify(validatedFields.error.flatten(), null, 2));
+    if (!validatedRequest.success) {
+      console.error("Bulk upload validation error:", JSON.stringify(validatedRequest.error.flatten(), null, 2));
       return {
         success: false,
         message: 'Invalid data format. Please check your file and column names.',
-        errors: validatedFields.error.flatten().fieldErrors,
       };
     }
+    
+    const { userId, associatedCompany, jsonData, mapping } = validatedRequest.data;
 
     const batch = db.batch();
     let count = 0;
 
-    for (const item of validatedFields.data) {
-      // Clean up the object before saving to Firestore
-      const { firstName, lastName, ...connectionData } = item;
-      
+    const reverseMapping: { [key in MappedField]?: string } = {};
+    for (const key in mapping) {
+        if(mapping[key] !== 'ignore') {
+            reverseMapping[mapping[key]] = key;
+        }
+    }
+
+    for (const row of jsonData) {
+        const nameHeader = reverseMapping['name'];
+        if (!nameHeader || !row[nameHeader]) {
+            continue; // Skip rows without a name
+        }
+
+        const connectionData: any = {
+            userId,
+            associatedCompany,
+            createdAt: Timestamp.now(),
+            tags: ['Connection'],
+        };
+
+        for (const field of mappedField.options) {
+            if (field === 'ignore' || !reverseMapping[field]) continue;
+            
+            const header = reverseMapping[field];
+            if(header && row[header]) {
+                 connectionData[field] = row[header];
+            }
+        }
+        
       const newConnectionRef = db.collection('connections').doc();
-      batch.set(newConnectionRef, {
-        ...connectionData,
-        userId,
-        associatedCompany,
-        tags: ['Connection'],
-        createdAt: Timestamp.now(),
-      });
+      batch.set(newConnectionRef, connectionData);
       count++;
+    }
+
+    if (count === 0) {
+        return { success: false, message: 'No valid connections with a name could be processed based on your mapping.' };
     }
 
     await batch.commit();
