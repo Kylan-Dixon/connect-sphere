@@ -192,12 +192,25 @@ export async function updateConnection(id: string, data: unknown) {
             (connectionData as Partial<typeof connectionData>).referrerName = undefined;
         }
 
-        await db.collection('connections').doc(id).update({
+        const updateData: any = {
             ...connectionData,
-             // Firestore expects its own Timestamp object for dates
-            reminderDate: connectionData.reminderDate ? Timestamp.fromDate(connectionData.reminderDate) : null,
             updatedAt: Timestamp.now(),
-        });
+        };
+
+        if (connectionData.reminderDate) {
+            // Check if it's a JS Date object before converting
+            if (connectionData.reminderDate instanceof Date) {
+                updateData.reminderDate = Timestamp.fromDate(connectionData.reminderDate);
+            } else {
+                 // It's likely already a Timestamp if it came from the DB and wasn't changed.
+                 // This field might not even be present if it wasn't changed, but this handles all cases.
+                updateData.reminderDate = connectionData.reminderDate;
+            }
+        } else {
+            updateData.reminderDate = null;
+        }
+
+        await db.collection('connections').doc(id).update(updateData);
 
         revalidatePath('/dashboard');
         revalidatePath(`/dashboard/connections/${connectionData.associatedCompany.toLowerCase().replace(/\s/g, '-')}`);
@@ -205,6 +218,7 @@ export async function updateConnection(id: string, data: unknown) {
 
         return { success: true, message: 'Connection updated successfully.' };
     } catch (error: any) {
+        console.error("Update Connection Error:", error);
         return { success: false, message: `Failed to update connection: ${error.message}` };
     }
 }

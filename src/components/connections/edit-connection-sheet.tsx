@@ -11,7 +11,7 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { updateConnection } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
@@ -86,6 +86,16 @@ export function EditConnectionSheet({ connection }: EditConnectionSheetProps) {
       reminderDate: connection.reminderDate ? connection.reminderDate.toDate() : undefined,
     },
   });
+  
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        ...connection,
+        reminderDate: connection.reminderDate ? connection.reminderDate.toDate() : undefined,
+      });
+    }
+  }, [open, connection, form]);
+
 
   const watchedTags = form.watch('tags');
   const isReferral = watchedTags?.includes('Referral');
