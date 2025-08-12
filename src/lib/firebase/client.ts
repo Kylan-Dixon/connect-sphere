@@ -15,20 +15,21 @@ if (getApps().length) {
 } else {
   let firebaseConfig;
 
-  // For Firebase App Hosting, the config is injected as FIREBASE_WEBAPP_CONFIG.
+  // For Firebase App Hosting, the config is injected as FIREBASE_WEBAPP_CONFIG
+  // and exposed to the client via next.config.js as NEXT_PUBLIC_FIREBASE_WEBAPP_CONFIG.
   // For local development, it falls back to the individual NEXT_PUBLIC_FIREBASE_ variables.
-  const firebaseConfigStr = process.env.NEXT_PUBLIC_FIREBASE_WEBAPP_CONFIG || process.env.FIREBASE_WEBAPP_CONFIG;
+  const firebaseConfigStr = process.env.NEXT_PUBLIC_FIREBASE_WEBAPP_CONFIG;
 
   if (firebaseConfigStr) {
     try {
       firebaseConfig = JSON.parse(firebaseConfigStr);
     } catch (error) {
-      console.error("Failed to parse FIREBASE_WEBAPP_CONFIG JSON:", error);
-      throw new Error("Could not initialize Firebase: Invalid FIREBASE_WEBAPP_CONFIG.");
+      console.error("Failed to parse NEXT_PUBLIC_FIREBASE_WEBAPP_CONFIG JSON:", error);
+      throw new Error("Could not initialize Firebase: Invalid NEXT_PUBLIC_FIREBASE_WEBAPP_CONFIG.");
     }
   } else {
     // This case is for local development where you'd use a .env.local file.
-    console.warn("FIREBASE_WEBAPP_CONFIG not found, falling back to individual NEXT_PUBLIC_ variables for local development.");
+    console.warn("NEXT_PUBLIC_FIREBASE_WEBAPP_CONFIG not found, falling back to individual NEXT_PUBLIC_ variables for local development.");
     firebaseConfig = {
       apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
       authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
