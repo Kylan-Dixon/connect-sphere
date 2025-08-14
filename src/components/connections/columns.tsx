@@ -4,6 +4,7 @@
 import { type ColumnDef } from '@tanstack/react-table';
 import { type Connection } from '@/lib/types';
 import { ArrowUpDown, MoreHorizontal, ExternalLink, Edit } from 'lucide-react';
+import { AuthProvider } from '@/hooks/use-auth';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -84,35 +85,37 @@ export const columns: ColumnDef<Connection>[] = [
     cell: ({ row }) => {
       const connection = row.original;
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-             <DropdownMenuItem asChild>
-                <EditConnectionSheet connection={connection} />
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(connection.id)}
-            >
-              Copy connection ID
-            </DropdownMenuItem>
-            {connection.linkedInUrl && (
-                 <DropdownMenuItem asChild>
-                    <Link href={connection.linkedInUrl} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="mr-2 h-4 w-4" />
-                        View LinkedIn
-                    </Link>
-                 </DropdownMenuItem>
-            )}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <AuthProvider>
+            <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem asChild>
+                    <EditConnectionSheet connection={connection} />
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                onClick={() => navigator.clipboard.writeText(connection.id)}
+                >
+                Copy connection ID
+                </DropdownMenuItem>
+                {connection.linkedInUrl && (
+                    <DropdownMenuItem asChild>
+                        <Link href={connection.linkedInUrl} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="mr-2 h-4 w-4" />
+                            View LinkedIn
+                        </Link>
+                    </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+            </DropdownMenuContent>
+            </DropdownMenu>
+        </AuthProvider>
       );
     },
   },
