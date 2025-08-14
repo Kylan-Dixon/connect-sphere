@@ -1,7 +1,7 @@
 
 'use server';
 
-import { initializeApp, getApp, getApps, cert, type App } from 'firebase-admin/app';
+import { initializeApp, getApp, getApps, type App } from 'firebase-admin/app';
 import { getAuth, type Auth } from 'firebase-admin/auth';
 import { getFirestore, type Firestore } from 'firebase-admin/firestore';
 import fs from 'fs';
@@ -32,37 +32,21 @@ export async function getFirebaseAdmin(): Promise<FirebaseAdmin> {
     };
   }
   
-  const projectId = process.env.FIREBASE_PROJECT_ID;
-  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  // IMPORTANT: Replace newlines for Vercel/other environments if needed. App Hosting handles this automatically.
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY;
-
-  if (!projectId || !clientEmail || !privateKey) {
-    const errorMsg = 'Firebase Admin SDK initialization failed: Missing one or more required environment variables (FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY).';
-    console.error(errorMsg);
-    // Also log which ones are missing for easier debugging in App Hosting logs
-    if (!projectId) console.error("FIREBASE_PROJECT_ID is not set.");
-    if (!clientEmail) console.error("FIREBASE_CLIENT_EMAIL is not set.");
-    if (!privateKey) console.error("FIREBASE_PRIVATE_KEY is not set.");
-    throw new Error(errorMsg);
-  }
-
+  // When running on Google Cloud infrastructure (like Firebase App Hosting),
+  // the Admin SDK can automatically discover the service account credentials
+  // by calling initializeApp() with no arguments. This is known as 
+  // Application Default Credentials (ADC).
   try {
-    const app = initializeApp({
-        credential: cert({
-          projectId,
-          clientEmail,
-          privateKey,
-        }),
-    });
-
+    const app = initializeApp();
     const auth = getAuth(app);
     const db = getFirestore(app);
     
     return { app, auth, db };
 
   } catch (error: any) {
-    console.error(`CRITICAL: Failed to initialize Firebase Admin SDK in getFirebaseAdmin. Error: ${error.message}`);
+    console.error(`CRITICAL: Failed to initialize Firebase Admin SDK in getFirebaseAdmin. This is expected to work automatically in App Hosting. Error: ${error.message}`);
+    // For local development, you might need to set up credentials differently.
+    // See: https://firebase.google.com/docs/admin/setup#initialize-sdk
     throw new Error(`Firebase Admin SDK could not be initialized: ${error.message}`);
   }
 }
