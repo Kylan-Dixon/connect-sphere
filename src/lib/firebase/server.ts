@@ -16,15 +16,14 @@ interface FirebaseAdmin {
 const logFilePath = path.join(process.cwd(), 'firebase-admin.log');
 
 function log(message: string) {
+  // This function is for local debugging and won't be visible in App Hosting logs.
+  // Use console.log for messages you want to appear in Cloud Logging.
   const timestamp = new Date().toISOString();
   fs.appendFileSync(logFilePath, `${timestamp}: ${message}\n`, 'utf8');
 }
 
 export async function getFirebaseAdmin(): Promise<FirebaseAdmin> {
-  log('--- getFirebaseAdmin() called ---');
-
   if (getApps().length > 0) {
-    log('Firebase Admin SDK already initialized. Returning existing instance.');
     const app = getApp();
     return {
       app,
@@ -35,22 +34,20 @@ export async function getFirebaseAdmin(): Promise<FirebaseAdmin> {
   
   const projectId = process.env.FIREBASE_PROJECT_ID;
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  // IMPORTANT: Replace newlines for Vercel/other environments
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
-
-  log('Attempting to initialize Firebase Admin for the first time...');
-  log(`Project ID provided: ${!!projectId}`);
-  log(`Client Email provided: ${!!clientEmail}`);
-  log(`Private Key provided: ${!!privateKey}`);
+  // IMPORTANT: Replace newlines for Vercel/other environments if needed. App Hosting handles this automatically.
+  const privateKey = process.env.FIREBASE_PRIVATE_KEY;
 
   if (!projectId || !clientEmail || !privateKey) {
-    const errorMsg = 'Firebase Admin SDK initialization failed: Missing required environment variables.';
-    log(`ERROR: ${errorMsg}`);
+    const errorMsg = 'Firebase Admin SDK initialization failed: Missing one or more required environment variables (FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY).';
+    console.error(errorMsg);
+    // Also log which ones are missing for easier debugging in App Hosting logs
+    if (!projectId) console.error("FIREBASE_PROJECT_ID is not set.");
+    if (!clientEmail) console.error("FIREBASE_CLIENT_EMAIL is not set.");
+    if (!privateKey) console.error("FIREBASE_PRIVATE_KEY is not set.");
     throw new Error(errorMsg);
   }
 
   try {
-    log(`Initializing default app...`);
     const app = initializeApp({
         credential: cert({
           projectId,
@@ -61,15 +58,11 @@ export async function getFirebaseAdmin(): Promise<FirebaseAdmin> {
 
     const auth = getAuth(app);
     const db = getFirestore(app);
-
-    log('Firebase Admin SDK initialized successfully.');
-    log('--- getFirebaseAdmin() finished ---');
     
     return { app, auth, db };
 
   } catch (error: any) {
-    log(`CRITICAL: Failed to initialize Firebase Admin SDK in getFirebaseAdmin. Error: ${error.message}`);
-    log('--- getFirebaseAdmin() finished with error ---');
+    console.error(`CRITICAL: Failed to initialize Firebase Admin SDK in getFirebaseAdmin. Error: ${error.message}`);
     throw new Error(`Firebase Admin SDK could not be initialized: ${error.message}`);
   }
 }
