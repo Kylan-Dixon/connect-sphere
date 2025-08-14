@@ -187,24 +187,18 @@ export async function updateConnection(id: string, data: unknown) {
         }
         
         const connectionData = validatedFields.data;
+        const updateData: { [key: string]: any } = { ...connectionData };
 
-        if (!connectionData.tags?.includes('Referral')) {
-            (connectionData as Partial<typeof connectionData>).referrerName = undefined;
+
+        if (!updateData.tags?.includes('Referral')) {
+            delete updateData.referrerName;
         }
+        
+        updateData.updatedAt = Timestamp.now();
 
-        const updateData: any = {
-            ...connectionData,
-            updatedAt: Timestamp.now(),
-        };
-
-        if (connectionData.reminderDate) {
-            // Check if it's a JS Date object before converting
-            if (connectionData.reminderDate instanceof Date) {
-                updateData.reminderDate = Timestamp.fromDate(connectionData.reminderDate);
-            } else {
-                 // It's likely already a Timestamp if it came from the DB and wasn't changed.
-                 // This field might not even be present if it wasn't changed, but this handles all cases.
-                updateData.reminderDate = connectionData.reminderDate;
+        if (updateData.reminderDate) {
+            if (updateData.reminderDate instanceof Date) {
+                updateData.reminderDate = Timestamp.fromDate(updateData.reminderDate);
             }
         } else {
             updateData.reminderDate = null;
