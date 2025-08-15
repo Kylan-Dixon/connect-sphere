@@ -3,7 +3,7 @@
 
 import { z } from 'zod';
 import { getFirebaseAdmin } from '@/lib/firebase/server';
-import { Timestamp } from 'firebase-admin/firestore';
+import { Timestamp, FieldValue } from 'firebase-admin/firestore';
 import { revalidatePath } from 'next/cache';
 import fs from 'fs';
 import path from 'path';
@@ -82,15 +82,12 @@ const connectionSchema = z.object({
   notes: z.string().optional(),
 });
 
-const addConnectionSchema = connectionSchema.extend({
-    userId: z.string(),
-});
 
 export async function addConnection(data: unknown) {
   try {
     const { db } = await getFirebaseAdmin();
 
-    const validatedFields = addConnectionSchema.safeParse(data);
+    const validatedFields = connectionSchema.safeParse(data);
 
     if (!validatedFields.success) {
       const errorDetails = validatedFields.error.flatten().fieldErrors;
@@ -100,71 +97,41 @@ export async function addConnection(data: unknown) {
         errors: errorDetails,
       };
     }
+    
+    // Remove userId from validated data before saving
+    const { ...connectionData } = validatedFields.data;
 
-    const connectionData = {
-      ...validatedFields.data,
+    const dataToSubmit: { [key: string]: any } = {
+      ...connectionData,
       createdAt: Timestamp.now(),
     };
-    
-    if (!connectionData.tags?.includes('Referral')) {
-        delete (connectionData as Partial<typeof connectionData>).referrerName;
+
+    if (!dataToSubmit.tags?.includes('Referral')) {
+      delete dataToSubmit.referrerName;
     }
 
-    const newConnectionRef = await db.collection('connections').add(connectionData);
+    const newConnectionRef = await db.collection('connections').add(dataToSubmit);
     
     // --- ZAPIER / GOHIGHLEVEL INTEGRATION ---
-    
-    // Option 1: Firestore Query (Free Zapier Tier)
-    // Use the following JSON query in Zapier's "New Document in Collection" trigger
-    // to find new connections for Mohan Coaching. This is the recommended approach for the free tier.
-    /*
-    {
-      "where": {
-        "fieldFilter": {
-          "field": {
-            "fieldPath": "associatedCompany"
-          },
-          "op": "EQUAL",
-          "value": {
-            "stringValue": "Mohan Coaching"
+    if (dataToSubmit.associatedCompany === 'Mohan Coaching') {
+      const webhookUrl = process.env.ZAPIER_MOHAN_COACHING_WEBHOOK_URL;
+      if (webhookUrl) {
+          try {
+            await fetch(webhookUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                id: newConnectionRef.id,
+                ...dataToSubmit,
+                createdAt: dataToSubmit.createdAt.toDate().toISOString(), 
+                reminderDate: dataToSubmit.reminderDate ? dataToSubmit.reminderDate.toISOString() : null,
+              }),
+            });
+          } catch (webhookError: any) {
+            console.error('Failed to send webhook:', webhookError.message);
           }
-        }
-      },
-      "orderBy": [
-        {
-          "field": {
-            "fieldPath": "createdAt"
-          },
-          "direction": "DESCENDING"
-        }
-      ]
-    }
-    */
-
-    // Option 2: Webhook (Paid Zapier Tier)
-    // This is currently commented out. To use it, uncomment the code below
-    // and replace the placeholder URL with your actual Zapier Webhook URL.
-    /*
-    if (connectionData.associatedCompany === 'Mohan Coaching') {
-      const webhookUrl = 'https://hooks.zapier.com/hooks/catch/YOUR_WEBHOOK_ID_HERE/';
-      try {
-        await fetch(webhookUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            id: newConnectionRef.id,
-            ...connectionData,
-            // Convert timestamp to a Zapier-friendly format
-            createdAt: connectionData.createdAt.toDate().toISOString(), 
-            reminderDate: connectionData.reminderDate ? connectionData.reminderDate.toISOString() : null,
-          }),
-        });
-      } catch (webhookError: any) {
-        // Log the error but don't block the main operation
-        console.error('Failed to send webhook:', webhookError.message);
       }
     }
-    */
 
     revalidatePath('/dashboard');
     return { success: true, message: 'Connection added successfully.' };
@@ -191,18 +158,17 @@ export async function updateConnection(id: string, data: unknown) {
 
 
         if (!updateData.tags?.includes('Referral')) {
-            delete updateData.referrerName;
+            updateData.referrerName = FieldValue.delete();
         }
         
         updateData.updatedAt = Timestamp.now();
 
-        if (updateData.reminderDate) {
-            if (updateData.reminderDate instanceof Date) {
-                updateData.reminderDate = Timestamp.fromDate(updateData.reminderDate);
-            }
-        } else {
+        if (updateData.reminderDate && updateData.reminderDate instanceof Date) {
+            updateData.reminderDate = Timestamp.fromDate(updateData.reminderDate);
+        } else if (updateData.reminderDate === undefined || updateData.reminderDate === null) {
             updateData.reminderDate = null;
         }
+
 
         await db.collection('connections').doc(id).update(updateData);
 
@@ -224,7 +190,6 @@ const mappedField = z.enum([
 type MappedField = z.infer<typeof mappedField>;
 
 const bulkUploadSchema = z.object({
-  userId: z.string(),
   associatedCompany: z.enum(['Mohan Financial', 'Mohan Coaching']),
   jsonData: z.array(z.record(z.any())),
   mapping: z.record(mappedField),
@@ -243,7 +208,7 @@ export async function addBulkConnections(data: unknown) {
       };
     }
     
-    const { userId, associatedCompany, jsonData, mapping } = validatedRequest.data;
+    const { associatedCompany, jsonData, mapping } = validatedRequest.data;
 
     const batch = db.batch();
     let count = 0;
@@ -252,9 +217,6 @@ export async function addBulkConnections(data: unknown) {
     for (const header in mapping) {
         const field = mapping[header];
         if (field !== 'ignore') {
-            // Allow multiple source headers to map to the same destination field,
-            // but we'll prioritize the one that appears first in a typical file.
-            // This is especially for 'First Name' + 'Last Name' -> 'name'.
             if (!reverseMapping[field]) {
                  reverseMapping[field] = header;
             }
@@ -266,7 +228,6 @@ export async function addBulkConnections(data: unknown) {
         let name = '';
         const nameHeader = Object.keys(mapping).find(h => mapping[h] === 'name');
         
-        // Special handling for combined name from First Name + Last Name
         const firstNameHeader = Object.keys(mapping).find(h => h.toLowerCase() === 'first name');
         const lastNameHeader = Object.keys(mapping).find(h => h.toLowerCase() === 'last name');
         const combinedNameHeader = "Name (Combined)";
@@ -283,17 +244,15 @@ export async function addBulkConnections(data: unknown) {
         }
 
         const connectionData: any = {
-            userId,
             associatedCompany,
             createdAt: Timestamp.now(),
             tags: ['Connection'],
             name: name
         };
         
-        // Map all other fields
         for (const field in reverseMapping) {
             const headerKey = field as MappedField;
-            if (headerKey === 'name') continue; // Already handled name
+            if (headerKey === 'name') continue; 
 
             const header = reverseMapping[headerKey];
             if (header && row[header]) {

@@ -101,12 +101,7 @@ export function AddConnectionForm({ onSuccess }: AddConnectionFormProps) {
       return;
     }
 
-    const dataToSubmit = {
-      ...values,
-      userId: user.uid,
-    };
-
-    const result = await addConnection(dataToSubmit);
+    const result = await addConnection(values);
 
     if (result.success) {
       toast({

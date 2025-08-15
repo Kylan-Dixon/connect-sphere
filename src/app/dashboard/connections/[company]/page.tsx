@@ -26,12 +26,11 @@ export default function CompanyConnectionsPage() {
     .join(' ') as 'Mohan Financial' | 'Mohan Coaching';
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) return; // Still require user to be logged in to view data
     setLoading(true);
 
     const q = query(
       collection(db, 'connections'),
-      where('userId', '==', user.uid),
       where('associatedCompany', '==', companyName),
       orderBy('createdAt', 'desc')
     );

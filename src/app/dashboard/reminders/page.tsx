@@ -15,12 +15,11 @@ export default function RemindersPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) return; // Still require user to be logged in to view data
     setLoading(true);
 
     const q = query(
       collection(db, 'connections'),
-      where('userId', '==', user.uid),
       where('reminderDate', '!=', null),
       orderBy('reminderDate', 'asc')
     );

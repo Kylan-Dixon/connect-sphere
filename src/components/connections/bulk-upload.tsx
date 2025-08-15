@@ -93,7 +93,6 @@ export function BulkUpload({ associatedCompany }: BulkUploadProps) {
       
       const fileJsonData = XLSX.utils.sheet_to_json(worksheet, {defval: ''});
       
-      // Handle LinkedIn's "First Name" and "Last Name"
       const firstNameIndex = fileHeaders.findIndex(h => h.toLowerCase() === 'first name');
       const lastNameIndex = fileHeaders.findIndex(h => h.toLowerCase() === 'last name');
       const nameIndex = fileHeaders.findIndex(h => h.toLowerCase() === 'name');
@@ -102,7 +101,6 @@ export function BulkUpload({ associatedCompany }: BulkUploadProps) {
       let finalHeaders = [...fileHeaders];
 
       if (firstNameIndex !== -1 && lastNameIndex !== -1 && nameIndex === -1) {
-        // If we have First/Last Name but not a combined Name, create one.
         combinedData = fileJsonData.map((row: any) => ({
             ...row,
             "Name (Combined)": `${row[fileHeaders[firstNameIndex]] || ''} ${row[fileHeaders[lastNameIndex]] || ''}`.trim()
@@ -113,7 +111,6 @@ export function BulkUpload({ associatedCompany }: BulkUploadProps) {
       setHeaders(finalHeaders);
       setJsonData(combinedData);
 
-      // Auto-map headers
       const initialMapping: { [key: string]: MappedField | 'ignore' } = {};
       finalHeaders.forEach(header => {
         const suggestion = headerMappingSuggestions[header.toLowerCase()];
@@ -151,7 +148,6 @@ export function BulkUpload({ associatedCompany }: BulkUploadProps) {
 
     try {
       const result = await addBulkConnections({
-        userId: user.uid,
         associatedCompany,
         jsonData,
         mapping

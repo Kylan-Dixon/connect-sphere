@@ -14,5 +14,5 @@ export type Connection = {
   reminderDate?: Timestamp;
   notes?: string;
   createdAt: Timestamp;
-  userId: string;
+  userId?: string; // Changed to optional
 };
