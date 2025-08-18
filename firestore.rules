@@ -1,24 +1,12 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // By default, deny all reads and writes
-    match /{document=**} {
-      allow read, write: if false;
+    match /connections/{document=**} {
+      allow read, write: if request.auth != null;
     }
-
-    // Allow any authenticated user to create, read, and update any connection
-    // but prevent them from deleting connections.
-    match /connections/{connectionId} {
-      allow read, create, update: if request.auth != null;
-      allow delete: if false;
-    }
-
-    // Allow read access to authorized_users collection for any authenticated user.
-    // This is used for checking if a user can sign up.
     match /authorized_users/{email} {
-        allow get: if request.auth != null;
+      allow read: if true;
     }
   }
 }
