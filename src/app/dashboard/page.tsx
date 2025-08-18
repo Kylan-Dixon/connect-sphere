@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
 
 import { useAuth } from '@/hooks/use-auth';
 import { db } from '@/lib/firebase/client';
@@ -19,9 +19,12 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return; // Still require user to be logged in to view data
-    setLoading(true);
+    if (!user) {
+      setLoading(false);
+      return; 
+    }
 
+    setLoading(true);
     const q = query(
       collection(db, 'connections'),
       orderBy('createdAt', 'desc')

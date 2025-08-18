@@ -27,7 +27,10 @@ export default function CompanyConnectionsPage() {
     .join(' ') as 'Mohan Financial' | 'Mohan Coaching';
 
   useEffect(() => {
-    if (!user) return; // Still require user to be logged in to view data
+    if (!user) {
+      setLoading(false);
+      return; 
+    }
     setLoading(true);
 
     const q = query(
