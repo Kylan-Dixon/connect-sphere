@@ -6,10 +6,6 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "userId",
-          "order": "ASCENDING"
-        },
-        {
           "fieldPath": "associatedCompany",
           "order": "ASCENDING"
         },
@@ -24,10 +20,6 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "userId",
-          "order": "ASCENDING"
-        },
-        {
           "fieldPath": "reminderDate",
           "order": "ASCENDING"
         }
@@ -37,10 +29,6 @@
       "collectionGroup": "connections",
       "queryScope": "COLLECTION",
       "fields": [
-        {
-          "fieldPath": "userId",
-          "order": "ASCENDING"
-        },
         {
           "fieldPath": "reminderDate",
           "order": "DESCENDING"
