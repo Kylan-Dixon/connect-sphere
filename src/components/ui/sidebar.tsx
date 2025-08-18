@@ -2,11 +2,11 @@
 'use client'
 
 import * as React from 'react'
-import { cn } from '@/lib/utils'
-import { Button } from './button'
 import { PanelLeft } from 'lucide-react'
 import { Sheet, SheetContent, SheetTrigger } from './sheet'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { Button } from './button'
+import { cn } from '@/lib/utils'
 
 const SidebarContext = React.createContext<{ isOpen: boolean; setIsOpen: React.Dispatch<React.SetStateAction<boolean>> } | undefined>(undefined);
 
@@ -15,7 +15,7 @@ export const useSidebar = () => {
     if (!context) throw new Error("useSidebar must be used within a SidebarProvider");
     return context;
 };
-
+  
 export const SidebarProvider = ({ children }: { children: React.ReactNode }) => {
     const isMobile = useIsMobile();
     const [isOpen, setIsOpen] = React.useState(!isMobile);
@@ -28,9 +28,10 @@ export const SidebarProvider = ({ children }: { children: React.ReactNode }) => 
         }
     }, [isMobile]);
 
-    return <SidebarContext.Provider value={{ isOpen, setIsOpen }}>{children}</SidebarContext.Provider>;
+    return (
+        <SidebarContext.Provider value={{ isOpen, setIsOpen }}>{children}</SidebarContext.Provider>
+    );
 };
-
 
 export const Sidebar = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, children, ...props }, ref) => {
@@ -41,9 +42,9 @@ export const Sidebar = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTM
       return (
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetContent side="left" className="w-[280px] p-0" closeIcon={false}>
-             <div className="flex h-full flex-col bg-card text-card-foreground">
+            <div className="flex h-full flex-col bg-card text-card-foreground">
                 {children}
-            </div>
+             </div>
           </SheetContent>
         </Sheet>
       )
@@ -61,8 +62,8 @@ export const Sidebar = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTM
       >
         {children}
       </aside>
-    )
-  }
+    );
+  },
 )
 Sidebar.displayName = 'Sidebar'
 
@@ -128,20 +129,26 @@ SidebarTrigger.displayName = 'SidebarTrigger';
 export const SidebarInset = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
     ({ className, children, ...props }, ref) => {
         const isMobile = useIsMobile();
+
+        if (isMobile) {
+            return (
+                <Sheet> {/* Wrap with Sheet */}
+                    <SheetTrigger asChild>
+                        <Button variant="ghost" size="icon" className="md:hidden">
+                            <PanelLeft />
+                            <span className="sr-only">Toggle Sidebar</span>
+                        </Button>
+                    </SheetTrigger>
+                    <SheetContent side="left" className="p-0 w-64">
+                        {children}
+                    </SheetContent>
+                </Sheet>
+            );
+        }
+
         return (
-            <div ref={ref} className={cn('flex-1 flex flex-col', className)} {...props}>
-                {isMobile && (
-                    <header className="flex items-center justify-between p-4 border-b md:hidden">
-                        <Logo />
-                        <SheetTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                                <PanelLeft />
-                                <span className="sr-only">Toggle Sidebar</span>
-                            </Button>
-                        </SheetTrigger>
-                    </header>
-                )}
-                <div className="flex-1 overflow-y-auto">
+            <div ref={ref} className={cn('flex-1 flex flex-col h-full', className)} {...props}>
+                <div className="flex-1 overflow-y-auto h-full">
                     {children}
                 </div>
             </div>
