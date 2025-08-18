@@ -1,3 +1,4 @@
+
 'use client';
 import { useEffect, useState, createContext, useContext, type ReactNode } from 'react';
 import { onAuthStateChanged, type User } from 'firebase/auth';
@@ -16,12 +17,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('AuthProvider: Subscribing to auth state changes.');
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+      if (user) {
+        console.log('AuthProvider: User is logged in.', { email: user.email, uid: user.uid });
+        setUser(user);
+      } else {
+        console.log('AuthProvider: User is logged out.');
+        setUser(null);
+      }
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      console.log('AuthProvider: Unsubscribing from auth state changes.');
+      unsubscribe();
+    }
   }, []);
 
   return (
@@ -40,7 +51,9 @@ export const useRequireAuth = () => {
   const router = useRouter();
 
   useEffect(() => {
+    console.log('useRequireAuth: Auth state check', { loading, user: !!user });
     if (!loading && !user) {
+      console.log('useRequireAuth: No user found, redirecting to /');
       router.push('/');
     }
   }, [user, loading, router]);

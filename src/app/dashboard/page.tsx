@@ -19,30 +19,39 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('DashboardPage: useEffect triggered.', { user: !!user });
     if (!user) {
+      console.log('DashboardPage: No user found, not fetching data.');
       setLoading(false);
       return; 
     }
 
+    console.log('DashboardPage: User found, setting up Firestore listener.');
     setLoading(true);
     const q = query(
       collection(db, 'connections'),
       orderBy('createdAt', 'desc')
     );
+    console.log('DashboardPage: Query created.');
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      console.log('DashboardPage: onSnapshot fired.', { size: querySnapshot.size, empty: querySnapshot.empty });
       const connectionsData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       })) as Connection[];
+      console.log(`DashboardPage: Parsed ${connectionsData.length} connections.`);
       setConnections(connectionsData);
       setLoading(false);
     }, (error) => {
-        console.error("Error fetching connections:", error);
+        console.error("DashboardPage: Error fetching connections:", error);
         setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      console.log('DashboardPage: Unsubscribing from Firestore listener.');
+      unsubscribe();
+    }
   }, [user]);
 
   return (

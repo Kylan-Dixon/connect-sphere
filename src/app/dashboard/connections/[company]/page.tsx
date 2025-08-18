@@ -27,10 +27,15 @@ export default function CompanyConnectionsPage() {
     .join(' ') as 'Mohan Financial' | 'Mohan Coaching';
 
   useEffect(() => {
+    console.log(`CompanyConnectionsPage (${companyName}): useEffect triggered.`, { user: !!user });
+    
     if (!user) {
+      console.log(`CompanyConnectionsPage (${companyName}): No user found, not fetching data.`);
       setLoading(false);
       return; 
     }
+
+    console.log(`CompanyConnectionsPage (${companyName}): User found, setting up Firestore listener.`);
     setLoading(true);
 
     const q = query(
@@ -38,20 +43,27 @@ export default function CompanyConnectionsPage() {
       where('associatedCompany', '==', companyName),
       orderBy('createdAt', 'desc')
     );
+    console.log(`CompanyConnectionsPage (${companyName}): Query created.`, { companyName });
+
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      console.log(`CompanyConnectionsPage (${companyName}): onSnapshot fired.`, { size: querySnapshot.size, empty: querySnapshot.empty });
       const connectionsData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       })) as Connection[];
+      console.log(`CompanyConnectionsPage (${companyName}): Parsed ${connectionsData.length} connections.`);
       setConnections(connectionsData);
       setLoading(false);
     }, (error) => {
-        console.error("Error fetching connections:", error);
+        console.error(`CompanyConnectionsPage (${companyName}): Error fetching connections:`, error);
         setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      console.log(`CompanyConnectionsPage (${companyName}): Unsubscribing from Firestore listener.`);
+      unsubscribe();
+    }
   }, [user, companyName]);
 
   return (

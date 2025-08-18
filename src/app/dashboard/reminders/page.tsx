@@ -15,10 +15,14 @@ export default function RemindersPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('RemindersPage: useEffect triggered.', { user: !!user });
     if (!user) {
+      console.log('RemindersPage: No user found, not fetching data.');
       setLoading(false);
       return;
     }
+
+    console.log('RemindersPage: User found, setting up Firestore listener.');
     setLoading(true);
 
     const q = query(
@@ -26,20 +30,26 @@ export default function RemindersPage() {
       where('reminderDate', '!=', null),
       orderBy('reminderDate', 'asc')
     );
+    console.log('RemindersPage: Query created.');
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      console.log('RemindersPage: onSnapshot fired.', { size: querySnapshot.size, empty: querySnapshot.empty });
       const remindersData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       })) as Connection[];
+      console.log(`RemindersPage: Parsed ${remindersData.length} reminders.`);
       setReminders(remindersData);
       setLoading(false);
     }, (error) => {
-        console.error("Error fetching reminders:", error);
+        console.error("RemindersPage: Error fetching reminders:", error);
         setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      console.log('RemindersPage: Unsubscribing from Firestore listener.');
+      unsubscribe();
+    }
   }, [user]);
 
   return (
