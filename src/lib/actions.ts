@@ -98,7 +98,6 @@ export async function addConnection(data: unknown) {
       };
     }
     
-    // Remove userId from validated data before saving
     const { ...connectionData } = validatedFields.data;
 
     const dataToSubmit: { [key: string]: any } = {
@@ -183,9 +182,26 @@ export async function updateConnection(id: string, data: unknown) {
     }
 }
 
+export async function deleteConnection(id: string) {
+  try {
+    const { db } = await getFirebaseAdmin();
+    await db.collection('connections').doc(id).delete();
+    
+    revalidatePath('/dashboard');
+    revalidatePath('/dashboard/connections/mohan-financial');
+    revalidatePath('/dashboard/connections/mohan-coaching');
+    revalidatePath('/dashboard/reminders');
+    
+    return { success: true, message: 'Connection deleted successfully.' };
+  } catch (error: any) {
+    console.error("Delete Connection Error:", error);
+    return { success: false, message: `Failed to delete connection: ${error.message}` };
+  }
+}
+
 
 const mappedField = z.enum([
-    'name', 'email', 'phoneNumber', 'linkedInUrl', 'company', 'title', 'notes', 'ignore'
+    'name', 'email', 'phoneNumber', 'linkedInUrl', 'company', 'title', 'notes', 'ignore', 'firstName', 'lastName'
 ]);
 type MappedField = z.infer<typeof mappedField>;
 
@@ -225,18 +241,17 @@ export async function addBulkConnections(data: unknown) {
 
 
     for (const row of jsonData) {
-        let name = '';
-        const nameHeader = Object.keys(mapping).find(h => mapping[h] === 'name');
-        
-        const firstNameHeader = Object.keys(mapping).find(h => h.toLowerCase() === 'first name');
-        const lastNameHeader = Object.keys(mapping).find(h => h.toLowerCase() === 'last name');
-        const combinedNameHeader = "Name (Combined)";
-        const hasCombinedMapping = mapping[combinedNameHeader] === 'name';
+        const nameHeader = reverseMapping['name'];
+        const firstNameHeader = reverseMapping['firstName'];
+        const lastNameHeader = reverseMapping['lastName'];
 
-        if (hasCombinedMapping && row[combinedNameHeader]) {
-             name = row[combinedNameHeader];
-        } else if (nameHeader && row[nameHeader]) {
-            name = row[nameHeader];
+        let name = '';
+        if (nameHeader && row[nameHeader]) {
+          name = row[nameHeader];
+        } else if (firstNameHeader && lastNameHeader) {
+          name = `${row[firstNameHeader] || ''} ${row[lastNameHeader] || ''}`.trim();
+        } else if (firstNameHeader && row[firstNameHeader]) {
+          name = row[firstNameHeader].trim();
         }
 
         if (!name) {
@@ -252,7 +267,7 @@ export async function addBulkConnections(data: unknown) {
         
         for (const field in reverseMapping) {
             const headerKey = field as MappedField;
-            if (headerKey === 'name') continue; 
+            if (['name', 'firstName', 'lastName'].includes(headerKey)) continue; 
 
             const header = reverseMapping[headerKey];
             if (header && row[header]) {

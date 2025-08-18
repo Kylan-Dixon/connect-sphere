@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import { useAuth } from '@/hooks/use-auth';
 import { addBulkConnections } from '@/lib/actions';
@@ -19,11 +19,13 @@ interface BulkUploadProps {
 }
 
 type UploadStep = 'select' | 'map' | 'uploading';
-type MappedField = 'name' | 'email' | 'phoneNumber' | 'linkedInUrl' | 'company' | 'title' | 'notes';
+type MappedField = 'name' | 'firstName' | 'lastName' | 'email' | 'phoneNumber' | 'linkedInUrl' | 'company' | 'title' | 'notes';
 
 const mappableFields: { value: MappedField | 'ignore', label: string }[] = [
     { value: 'ignore', label: 'Ignore this column' },
-    { value: 'name', label: 'Name' },
+    { value: 'name', label: 'Full Name' },
+    { value: 'firstName', label: 'First Name' },
+    { value: 'lastName', label: 'Last Name' },
     { value: 'email', label: 'Email' },
     { value: 'phoneNumber', label: 'Phone Number' },
     { value: 'linkedInUrl', label: 'LinkedIn Profile URL' },
@@ -33,9 +35,10 @@ const mappableFields: { value: MappedField | 'ignore', label: string }[] = [
 ];
 
 const headerMappingSuggestions: { [key: string]: MappedField } = {
-  'first name': 'name',
-  'last name': 'name', // Will be combined into 'name'
+  'first name': 'firstName',
+  'last name': 'lastName', 
   'name': 'name',
+  'full name': 'name',
   'url': 'linkedInUrl',
   'linkedin profile url': 'linkedInUrl',
   'profile url': 'linkedInUrl',
@@ -90,29 +93,13 @@ export function BulkUpload({ associatedCompany }: BulkUploadProps) {
       }
       
       const fileHeaders = (json[0] as string[]).map(h => String(h || '').trim());
-      
       const fileJsonData = XLSX.utils.sheet_to_json(worksheet, {defval: ''});
       
-      const firstNameIndex = fileHeaders.findIndex(h => h.toLowerCase() === 'first name');
-      const lastNameIndex = fileHeaders.findIndex(h => h.toLowerCase() === 'last name');
-      const nameIndex = fileHeaders.findIndex(h => h.toLowerCase() === 'name');
-
-      let combinedData = fileJsonData;
-      let finalHeaders = [...fileHeaders];
-
-      if (firstNameIndex !== -1 && lastNameIndex !== -1 && nameIndex === -1) {
-        combinedData = fileJsonData.map((row: any) => ({
-            ...row,
-            "Name (Combined)": `${row[fileHeaders[firstNameIndex]] || ''} ${row[fileHeaders[lastNameIndex]] || ''}`.trim()
-        }));
-        finalHeaders.push('Name (Combined)');
-      }
-      
-      setHeaders(finalHeaders);
-      setJsonData(combinedData);
+      setHeaders(fileHeaders);
+      setJsonData(fileJsonData);
 
       const initialMapping: { [key: string]: MappedField | 'ignore' } = {};
-      finalHeaders.forEach(header => {
+      fileHeaders.forEach(header => {
         const suggestion = headerMappingSuggestions[header.toLowerCase()];
         initialMapping[header] = suggestion || 'ignore';
       });
@@ -139,8 +126,9 @@ export function BulkUpload({ associatedCompany }: BulkUploadProps) {
       toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in.' });
       return;
     }
-    if (!Object.values(mapping).includes('name')) {
-        toast({ variant: 'destructive', title: 'Mapping Error', description: 'You must map a column to the "Name" field to proceed.' });
+    const mappedValues = Object.values(mapping);
+    if (!mappedValues.includes('name') && !(mappedValues.includes('firstName'))) {
+        toast({ variant: 'destructive', title: 'Mapping Error', description: 'You must map a column to either "Full Name" or "First Name" to proceed.' });
         return;
     }
 

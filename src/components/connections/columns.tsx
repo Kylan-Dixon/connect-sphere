@@ -3,7 +3,7 @@
 
 import { type ColumnDef } from '@tanstack/react-table';
 import { type Connection } from '@/lib/types';
-import { ArrowUpDown, MoreHorizontal, ExternalLink, Edit } from 'lucide-react';
+import { ArrowUpDown, MoreHorizontal, ExternalLink } from 'lucide-react';
 import { AuthProvider } from '@/hooks/use-auth';
 
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,8 @@ import {
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { EditConnectionSheet } from './edit-connection-sheet';
+import { DeleteConnectionDialog } from './delete-connection-dialog';
+
 
 export const columns: ColumnDef<Connection>[] = [
   {
@@ -112,7 +114,7 @@ export const columns: ColumnDef<Connection>[] = [
                     </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                <DeleteConnectionDialog connectionId={connection.id} connectionName={connection.name} />
             </DropdownMenuContent>
             </DropdownMenu>
         </AuthProvider>
