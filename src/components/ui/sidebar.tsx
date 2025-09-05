@@ -21,11 +21,7 @@ export const SidebarProvider = ({ children }: { children: React.ReactNode }) => 
     const [isOpen, setIsOpen] = React.useState(!isMobile);
     
     React.useEffect(() => {
-        if (isMobile) {
-            setIsOpen(false);
-        } else {
-            setIsOpen(true);
-        }
+        setIsOpen(!isMobile);
     }, [isMobile]);
 
     return (
@@ -41,7 +37,7 @@ export const Sidebar = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTM
     if (isMobile) {
       return (
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
-          <SheetContent side="left" className="w-[280px] p-0" closeIcon={false}>
+          <SheetContent side="left" className="w-72 p-0" closeIcon={true}>
             <div className="flex h-full flex-col bg-card text-card-foreground">
                 {children}
              </div>
@@ -69,7 +65,7 @@ Sidebar.displayName = 'Sidebar'
 
 export const SidebarHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
     ({ className, ...props }, ref) => (
-      <div ref={ref} className={cn('py-4 border-b', className)} {...props} />
+      <div ref={ref} className={cn('p-4 border-b', className)} {...props} />
     )
   )
 SidebarHeader.displayName = 'SidebarHeader';
@@ -84,7 +80,7 @@ SidebarContent.displayName = 'SidebarContent';
 
 export const SidebarFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
     ({ className, ...props }, ref) => (
-      <div ref={ref} className={cn('py-2 border-t', className)} {...props} />
+      <div ref={ref} className={cn('p-2 border-t', className)} {...props} />
     )
 )
 SidebarFooter.displayName = 'SidebarFooter';
@@ -115,9 +111,9 @@ SidebarMenuButton.displayName = 'SidebarMenuButton';
 
 export const SidebarTrigger = React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement>>(
     (props, ref) => {
-        const { setIsOpen } = useSidebar();
+        const { isOpen, setIsOpen } = useSidebar();
         return (
-            <Button ref={ref} variant="ghost" size="icon" {...props} onClick={() => setIsOpen(true)}>
+            <Button ref={ref} variant="ghost" size="icon" {...props} onClick={() => setIsOpen(!isOpen)}>
                 <PanelLeft />
                 <span className="sr-only">Toggle Sidebar</span>
             </Button>
@@ -126,36 +122,20 @@ export const SidebarTrigger = React.forwardRef<HTMLButtonElement, React.ButtonHT
 )
 SidebarTrigger.displayName = 'SidebarTrigger';
 
-export const SidebarInset = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+
+export const MobileHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
     ({ className, children, ...props }, ref) => {
         const isMobile = useIsMobile();
-
-        if (isMobile) {
-            return (
-                <Sheet> {/* Wrap with Sheet */}
-                    <SheetTrigger asChild>
-                        <Button variant="ghost" size="icon" className="md:hidden">
-                            <PanelLeft />
-                            <span className="sr-only">Toggle Sidebar</span>
-                        </Button>
-                    </SheetTrigger>
-                    <SheetContent side="left" className="p-0 w-64">
-                        {children}
-                    </SheetContent>
-                </Sheet>
-            );
-        }
-
+        if (!isMobile) return null;
         return (
-            <div ref={ref} className={cn('flex-1 flex flex-col h-full', className)} {...props}>
-                <div className="flex-1 overflow-y-auto h-full">
-                    {children}
-                </div>
-            </div>
+            <header ref={ref} className={cn('flex h-14 items-center gap-4 border-b bg-muted/40 px-6 md:hidden', className)} {...props}>
+                {children}
+            </header>
         )
     }
 );
-SidebarInset.displayName = 'SidebarInset';
+MobileHeader.displayName = 'MobileHeader';
+
 
 export const SidebarSeparator = React.forwardRef<HTMLHRElement, React.HTMLAttributes<HTMLHRElement>>(
     ({ className, ...props }, ref) => {
@@ -163,17 +143,3 @@ export const SidebarSeparator = React.forwardRef<HTMLHRElement, React.HTMLAttrib
     }
 );
 SidebarSeparator.displayName = 'SidebarSeparator';
-
-// Add Logo to prevent circular dependency
-import { Share2 } from 'lucide-react';
-
-export function Logo() {
-  return (
-    <div className="flex items-center justify-center gap-2 text-primary">
-      <Share2 className="h-6 w-6" />
-      <span className="font-headline text-xl font-bold tracking-tighter">
-        ConnectSphere
-      </span>
-    </div>
-  );
-}

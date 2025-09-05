@@ -48,16 +48,14 @@ const menuItems = [
 export function SidebarNav() {
   const pathname = usePathname();
   const { isOpen, setIsOpen } = useSidebar();
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-
 
   const NavContent = () => (
     <TooltipProvider delayDuration={0}>
         <SidebarHeader>
-            <div className={cn('p-2 transition-all duration-300', isOpen ? 'opacity-100' : 'opacity-0 h-0')}>
+            <div className={cn('p-2 transition-all duration-300', isOpen ? 'opacity-100' : 'opacity-0 h-0 md:opacity-100 md:h-auto')}>
                 <Logo />
             </div>
-            <div className={cn('px-2 transition-all duration-300', isOpen ? 'opacity-100' : 'opacity-0 h-0')}>
+            <div className={cn('px-2 transition-all duration-300', isOpen ? 'opacity-100' : 'opacity-0 h-0 md:opacity-100 md:h-auto')}>
                 <AddConnectionSheet />
             </div>
         </SidebarHeader>
@@ -66,35 +64,26 @@ export function SidebarNav() {
             <SidebarMenu>
             {menuItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                    {isOpen ? (
-                        <SidebarMenuButton
-                            asChild
-                            isActive={pathname === item.href}
-                            className="justify-start"
-                        >
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <SidebarMenuButton
+                                asChild
+                                isActive={pathname === item.href}
+                            >
                             <Link href={item.href}>
-                            <item.icon className="mr-2 h-4 w-4" />
-                            <span>{item.label}</span>
+                                <item.icon />
+                                <span className={cn(isOpen ? 'inline' : 'hidden')}>
+                                    {item.label}
+                                </span>
                             </Link>
-                        </SidebarMenuButton>
-                    ) : (
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <SidebarMenuButton
-                                    asChild
-                                    isActive={pathname === item.href}
-                                >
-                                <Link href={item.href}>
-                                    <item.icon />
-                                    <span className="sr-only">{item.label}</span>
-                                </Link>
-                                </SidebarMenuButton>
-                            </TooltipTrigger>
+                            </SidebarMenuButton>
+                        </TooltipTrigger>
+                        {!isOpen && (
                             <TooltipContent side="right" align="center">
                                 {item.label}
                             </TooltipContent>
-                        </Tooltip>
-                    )}
+                        )}
+                    </Tooltip>
                 </SidebarMenuItem>
             ))}
             </SidebarMenu>
@@ -104,12 +93,10 @@ export function SidebarNav() {
 
         <SidebarFooter>
              <UserNav isOpen={isOpen} />
-             {!isMobile && (
-                <Button variant="ghost" size="icon" className="w-full justify-center" onClick={() => setIsOpen(!isOpen)}>
-                    {isOpen ? <PanelLeftClose /> : <PanelLeftOpen />}
-                    <span className="sr-only">Toggle sidebar</span>
-                </Button>
-             )}
+             <Button variant="ghost" size="icon" className="w-full justify-center hidden md:flex" onClick={() => setIsOpen(!isOpen)}>
+                {isOpen ? <PanelLeftClose /> : <PanelLeftOpen />}
+                <span className="sr-only">Toggle sidebar</span>
+            </Button>
         </SidebarFooter>
     </TooltipProvider>
   )

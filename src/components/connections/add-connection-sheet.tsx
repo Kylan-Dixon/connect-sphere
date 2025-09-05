@@ -25,7 +25,7 @@ export function AddConnectionSheet() {
           Add Connection
         </Button>
       </SheetTrigger>
-      <SheetContent className="sm:max-w-xl w-[90vw] overflow-y-auto">
+      <SheetContent className="sm:max-w-xl w-full overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="font-headline">Add New Connection</SheetTitle>
           <SheetDescription>
