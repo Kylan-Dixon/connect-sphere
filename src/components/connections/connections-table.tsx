@@ -25,6 +25,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '../ui/skeleton';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -37,9 +38,26 @@ export function ConnectionsTable<TData, TValue>({
   data,
   loading,
 }: DataTableProps<TData, TValue>) {
+  const isMobile = useIsMobile();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+
+  React.useEffect(() => {
+    // Hide columns on mobile
+    if (isMobile) {
+      setColumnVisibility({
+        email: false,
+        phoneNumber: false,
+        company: false,
+        title: false,
+        referrerName: false,
+        reminderDate: false,
+      });
+    } else {
+      setColumnVisibility({});
+    }
+  }, [isMobile]);
 
   const table = useReactTable({
     data,
