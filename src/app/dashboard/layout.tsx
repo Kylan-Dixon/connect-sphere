@@ -3,7 +3,7 @@
 
 import { type ReactNode } from 'react';
 import { AuthProvider, useRequireAuth } from '@/hooks/use-auth';
-import { Sidebar, SidebarProvider, SidebarInset, SidebarTrigger, MobileHeader } from '@/components/ui/sidebar';
+import { Sidebar, SidebarProvider, SidebarTrigger, MobileHeader } from '@/components/ui/sidebar';
 import { SidebarNav } from '@/components/dashboard/sidebar-nav';
 import { Skeleton } from '@/components/ui/skeleton';
 

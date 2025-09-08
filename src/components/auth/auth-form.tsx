@@ -15,9 +15,10 @@ import { isUserAuthorized } from '@/lib/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Logo } from '@/components/logo';
+import { PwaInstallButton } from '../pwa-install-button';
 
 interface AuthFormProps {
   mode: 'login' | 'signup';
@@ -111,6 +112,9 @@ export function AuthForm({ mode }: AuthFormProps) {
           </Link>
         </div>
       </CardContent>
+      <CardFooter className="flex flex-col gap-4 pt-4">
+        <PwaInstallButton />
+      </CardFooter>
     </Card>
   );
 }

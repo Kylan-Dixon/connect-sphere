@@ -4,7 +4,7 @@
 import * as React from 'react'
 import { PanelLeft } from 'lucide-react'
 import { Sheet, SheetContent, SheetTrigger } from './sheet'
-import { useIsMobile } from '@/hooks/use-mobile'
+import { useIsMobile } from '@/hooks/use-sidebar-helpers';
 import { Button } from './button'
 import { cn } from '@/lib/utils'
 
@@ -125,10 +125,8 @@ SidebarTrigger.displayName = 'SidebarTrigger';
 
 export const MobileHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
     ({ className, children, ...props }, ref) => {
-        const isMobile = useIsMobile();
-        if (!isMobile) return null;
         return (
-            <header ref={ref} className={cn('flex h-14 items-center gap-4 border-b bg-muted/40 px-6 md:hidden', className)} {...props}>
+            <header ref={ref} className={cn('flex h-14 items-center gap-4 border-b bg-muted/40 px-4 md:hidden', className)} {...props}>
                 {children}
             </header>
         )

@@ -18,7 +18,7 @@ import {
   SidebarMenuButton,
   SidebarSeparator,
 } from '@/components/ui/sidebar';
-import { useSidebar } from '@/components/ui/sidebar';
+import { useSidebar } from '@/hooks/use-sidebar';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 

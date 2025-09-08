@@ -141,7 +141,7 @@ export function EditConnectionSheet({ connection }: EditConnectionSheetProps) {
         <span>Edit Connection</span>
       </button>
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent className="sm:max-w-xl w-full overflow-y-auto">
+        <SheetContent className="w-full overflow-y-auto sm:max-w-xl">
           <SheetHeader>
             <SheetTitle className="font-headline">Edit Connection</SheetTitle>
             <SheetDescription>
