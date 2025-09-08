@@ -14,7 +14,6 @@ export const metadata: Metadata = {
   title: 'ConnectSphere MVP',
   description: 'Manage your professional connections efficiently.',
   manifest: '/manifest.json',
-  themeColor: '#ffffff',
 };
 
 export default function RootLayout({
