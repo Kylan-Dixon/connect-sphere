@@ -21,6 +21,7 @@ import {
 import { useSidebar } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const menuItems = [
   {
@@ -48,6 +49,13 @@ const menuItems = [
 export function SidebarNav() {
   const pathname = usePathname();
   const { isOpen, setIsOpen } = useSidebar();
+  const isMobile = useIsMobile();
+
+  const handleLinkClick = () => {
+    if (isMobile) {
+      setIsOpen(false);
+    }
+  };
 
   const NavContent = () => (
     <TooltipProvider delayDuration={0}>
@@ -69,6 +77,7 @@ export function SidebarNav() {
                             <SidebarMenuButton
                                 asChild
                                 isActive={pathname === item.href}
+                                onClick={handleLinkClick}
                             >
                             <Link href={item.href}>
                                 <item.icon />

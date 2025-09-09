@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { db } from '@/lib/firebase/client';
 import { type Connection } from '@/lib/types';
 import { ConnectionsTable } from '@/components/connections/connections-table';
-import { columns } from '@/components/connections/columns';
+import { remindersColumns } from '@/components/connections/reminders-columns';
 
 export default function RemindersPage() {
   const { user } = useAuth();
@@ -15,14 +15,11 @@ export default function RemindersPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log('RemindersPage: useEffect triggered.', { user: !!user });
     if (!user) {
-      console.log('RemindersPage: No user found, not fetching data.');
       setLoading(false);
       return;
     }
 
-    console.log('RemindersPage: User found, setting up Firestore listener.');
     setLoading(true);
 
     const q = query(
@@ -30,15 +27,12 @@ export default function RemindersPage() {
       where('reminderDate', '!=', null),
       orderBy('reminderDate', 'asc')
     );
-    console.log('RemindersPage: Query created.');
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      console.log('RemindersPage: onSnapshot fired.', { size: querySnapshot.size, empty: querySnapshot.empty });
       const remindersData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       })) as Connection[];
-      console.log(`RemindersPage: Parsed ${remindersData.length} reminders.`);
       setReminders(remindersData);
       setLoading(false);
     }, (error) => {
@@ -47,7 +41,6 @@ export default function RemindersPage() {
     });
 
     return () => {
-      console.log('RemindersPage: Unsubscribing from Firestore listener.');
       unsubscribe();
     }
   }, [user]);
@@ -60,7 +53,7 @@ export default function RemindersPage() {
       <p className="text-muted-foreground">
         Showing all connections with a reminder date, sorted from most upcoming to farthest away.
       </p>
-      <ConnectionsTable columns={columns} data={reminders} loading={loading} />
+      <ConnectionsTable columns={remindersColumns} data={reminders} loading={loading} />
     </div>
   );
 }
