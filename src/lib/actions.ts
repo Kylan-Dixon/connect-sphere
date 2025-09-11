@@ -294,3 +294,42 @@ export async function addBulkConnections(data: unknown) {
     return { success: false, message: `Failed to add bulk connections: ${error.message}` };
   }
 }
+
+const bulkUpdateRemindersSchema = z.object({
+  connectionIds: z.array(z.string().min(1)),
+  reminderDate: z.coerce.date(),
+});
+
+export async function bulkUpdateReminders(data: unknown) {
+  try {
+    const { db } = await getFirebaseAdmin();
+    const validatedRequest = bulkUpdateRemindersSchema.safeParse(data);
+
+    if (!validatedRequest.success) {
+      return {
+        success: false,
+        message: 'Invalid data for bulk update.',
+        errors: validatedRequest.error.flatten().fieldErrors,
+      };
+    }
+    
+    const { connectionIds, reminderDate } = validatedRequest.data;
+    const reminderTimestamp = Timestamp.fromDate(reminderDate);
+
+    const batch = db.batch();
+
+    connectionIds.forEach(id => {
+      const docRef = db.collection('connections').doc(id);
+      batch.update(docRef, { reminderDate: reminderTimestamp });
+    });
+
+    await batch.commit();
+
+    revalidatePath('/dashboard', 'layout');
+
+    return { success: true, message: `Successfully updated reminders for ${connectionIds.length} connections.` };
+  } catch (error: any) {
+    console.error("Error in bulkUpdateReminders:", error);
+    return { success: false, message: `Failed to bulk update reminders: ${error.message}` };
+  }
+}
