@@ -58,7 +58,7 @@ interface MultiSelectProps
   maxCount?: number;
   modalPopover?: boolean;
   asChild?: boolean;
-  onChange?: (value: string[]) => void;
+  onChange: (value: string[]) => void;
   selected: string[];
 }
 
@@ -91,12 +91,6 @@ export const MultiSelect = React.forwardRef<
         setSelected(newSelected);
         onChange?.(newSelected);
     };
-
-    const handleSelect = (value: string) => {
-        const newSelected = [...selected, value];
-        setSelected(newSelected);
-        onChange?.(newSelected);
-    }
  
     return (
       <Popover open={open} onOpenChange={setOpen}>
@@ -144,30 +138,32 @@ export const MultiSelect = React.forwardRef<
             <CommandEmpty>No item found.</CommandEmpty>
             <CommandList>
               <CommandGroup>
-                {options.map((option) => (
-                  <CommandItem
-                    key={option.value}
-                    onSelect={() => {
-                        if (selected.includes(option.value)) {
-                            const newSelected = selected.filter((s) => s !== option.value);
-                            setSelected(newSelected);
-                            onChange?.(newSelected);
-                        } else {
-                            handleSelect(option.value);
-                        }
-                    }}
-                  >
-                    <CheckIcon
-                      className={cn(
-                        'mr-2 h-4 w-4',
-                        selected.includes(option.value)
-                          ? 'opacity-100'
-                          : 'opacity-0'
-                      )}
-                    />
-                    {option.label}
-                  </CommandItem>
-                ))}
+                {options.map((option) => {
+                    const isSelected = selected.includes(option.value);
+                    return (
+                        <CommandItem
+                            key={option.value}
+                            onSelect={() => {
+                                let newSelected: string[];
+                                if (isSelected) {
+                                    newSelected = selected.filter((s) => s !== option.value);
+                                } else {
+                                    newSelected = [...selected, option.value];
+                                }
+                                setSelected(newSelected);
+                                onChange?.(newSelected);
+                            }}
+                        >
+                            <CheckIcon
+                            className={cn(
+                                'mr-2 h-4 w-4',
+                                isSelected ? 'opacity-100' : 'opacity-0'
+                            )}
+                            />
+                            {option.label}
+                        </CommandItem>
+                    )
+                })}
               </CommandGroup>
             </CommandList>
           </Command>

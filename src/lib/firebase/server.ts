@@ -33,14 +33,10 @@ export async function getFirebaseAdmin(): Promise<FirebaseAdmin> {
   }
   
   // When running on Google Cloud infrastructure (like Firebase App Hosting),
-  // the Admin SDK can automatically discover the service account credentials.
-  // Explicitly providing the projectId from the FIREBASE_CONFIG env var
-  // helps the SDK initialize correctly in this environment.
+  // the Admin SDK can automatically discover the service account credentials
+  // by calling initializeApp() with no arguments.
   try {
-    const firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG!);
-    const app = initializeApp({
-        projectId: firebaseConfig.projectId,
-    });
+    const app = initializeApp();
     const auth = getAuth(app);
     const db = getFirestore(app);
     
