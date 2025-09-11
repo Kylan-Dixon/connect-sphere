@@ -4,22 +4,11 @@
 import { initializeApp, getApp, getApps, type App } from 'firebase-admin/app';
 import { getAuth, type Auth } from 'firebase-admin/auth';
 import { getFirestore, type Firestore } from 'firebase-admin/firestore';
-import fs from 'fs';
-import path from 'path';
 
 interface FirebaseAdmin {
   app: App;
   auth: Auth;
   db: Firestore;
-}
-
-const logFilePath = path.join(process.cwd(), 'firebase-admin.log');
-
-function log(message: string) {
-  // This function is for local debugging and won't be visible in App Hosting logs.
-  // Use console.log for messages you want to appear in Cloud Logging.
-  const timestamp = new Date().toISOString();
-  fs.appendFileSync(logFilePath, `${timestamp}: ${message}\n`, 'utf8');
 }
 
 export async function getFirebaseAdmin(): Promise<FirebaseAdmin> {
@@ -40,6 +29,7 @@ export async function getFirebaseAdmin(): Promise<FirebaseAdmin> {
     const auth = getAuth(app);
     const db = getFirestore(app);
     
+    console.log('Firebase Admin SDK initialized successfully in App Hosting environment.');
     return { app, auth, db };
 
   } catch (error: any) {

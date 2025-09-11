@@ -51,13 +51,8 @@ interface MultiSelectProps
     value: string;
     icon?: React.ComponentType<{ className?: string }>;
   }[];
-  onValueChange?: (value: string[]) => void;
-  defaultValue?: string[];
   placeholder?: string;
-  animation?: number;
-  maxCount?: number;
-  modalPopover?: boolean;
-  asChild?: boolean;
+  className?: string;
   onChange: (value: string[]) => void;
   selected: string[];
 }
@@ -72,23 +67,17 @@ export const MultiSelect = React.forwardRef<
       onChange,
       placeholder,
       className,
+      selected,
       ...props
     },
     ref
   ) => {
     const [open, setOpen] = React.useState(false);
-    const [selected, setSelected] = React.useState<string[]>(props.selected);
-
-    React.useEffect(() => {
-        setSelected(props.selected);
-    }, [props.selected]);
-
 
     const handleUnselect = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, value: string) => {
         e.preventDefault();
         e.stopPropagation();
         const newSelected = selected.filter((s) => s !== value);
-        setSelected(newSelected);
         onChange?.(newSelected);
     };
  
@@ -100,7 +89,7 @@ export const MultiSelect = React.forwardRef<
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className={cn("h-full w-full justify-between", className)}
+            className={cn("h-auto min-h-10 w-full justify-between", className)}
             onClick={() => setOpen(!open)}
           >
             <div className="flex gap-1 flex-wrap">
@@ -111,7 +100,7 @@ export const MultiSelect = React.forwardRef<
                      <Badge
                       key={value}
                       variant="secondary"
-                      className="mr-1 mb-1"
+                      className="mr-1"
                       asChild
                     >
                       <button
@@ -120,7 +109,7 @@ export const MultiSelect = React.forwardRef<
                         className="flex items-center gap-1"
                       >
                          {option?.label}
-                        <XCircle className="ml-2 h-4 w-4" />
+                        <XCircle className="ml-1 h-4 w-4" />
                       </button>
                     </Badge>
                    )
@@ -132,7 +121,7 @@ export const MultiSelect = React.forwardRef<
             <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-full p-0">
+        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
           <Command>
             <CommandInput placeholder="Search..." />
             <CommandEmpty>No item found.</CommandEmpty>
@@ -150,7 +139,6 @@ export const MultiSelect = React.forwardRef<
                                 } else {
                                     newSelected = [...selected, option.value];
                                 }
-                                setSelected(newSelected);
                                 onChange?.(newSelected);
                             }}
                         >
