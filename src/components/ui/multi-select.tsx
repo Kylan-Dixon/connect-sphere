@@ -74,7 +74,7 @@ export const MultiSelect = React.forwardRef<
   ) => {
     const [open, setOpen] = React.useState(false);
 
-    const handleUnselect = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, value: string) => {
+    const handleUnselect = (e: React.MouseEvent, value: string) => {
         e.preventDefault();
         e.stopPropagation();
         const newSelected = selected.filter((s) => s !== value);
@@ -100,17 +100,16 @@ export const MultiSelect = React.forwardRef<
                      <Badge
                       key={value}
                       variant="secondary"
-                      className="mr-1"
-                      asChild
+                      className="mr-1 pl-2 pr-1 py-1 flex items-center gap-1"
                     >
-                      <button
+                      {option?.label}
+                      <div
                         aria-label={`Remove ${option?.label} option`}
                         onClick={(e) => handleUnselect(e, value)}
-                        className="flex items-center gap-1"
+                        className="rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer"
                       >
-                         {option?.label}
-                        <XCircle className="ml-1 h-4 w-4" />
-                      </button>
+                        <XCircle className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                      </div>
                     </Badge>
                    )
                 })
