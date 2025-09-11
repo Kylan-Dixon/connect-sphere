@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
+import type { ColumnFiltersState } from '@tanstack/react-table';
 
 import { useAuth } from '@/hooks/use-auth';
 import { db } from '@/lib/firebase/client';
@@ -17,6 +18,7 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const [connections, setConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   useEffect(() => {
     console.log('DashboardPage: useEffect triggered.', { user: !!user });
@@ -72,7 +74,13 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between space-y-2">
           <h2 className="text-3xl font-bold tracking-tight font-headline">All Connections</h2>
         </div>
-        <ConnectionsTable columns={columns} data={connections} loading={loading} />
+        <ConnectionsTable 
+            columns={columns} 
+            data={connections} 
+            loading={loading}
+            columnFilters={columnFilters}
+            setColumnFilters={setColumnFilters}
+        />
       </div>
     </div>
   );

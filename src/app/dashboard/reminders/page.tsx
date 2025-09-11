@@ -3,6 +3,8 @@
 
 import { useEffect, useState } from 'react';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import type { ColumnFiltersState } from '@tanstack/react-table';
+
 import { useAuth } from '@/hooks/use-auth';
 import { db } from '@/lib/firebase/client';
 import { type Connection } from '@/lib/types';
@@ -13,6 +15,7 @@ export default function RemindersPage() {
   const { user } = useAuth();
   const [reminders, setReminders] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   useEffect(() => {
     if (!user) {
@@ -53,7 +56,13 @@ export default function RemindersPage() {
       <p className="text-muted-foreground">
         Showing all connections with a reminder date, sorted from most upcoming to farthest away.
       </p>
-      <ConnectionsTable columns={remindersColumns} data={reminders} loading={loading} />
+      <ConnectionsTable 
+        columns={remindersColumns} 
+        data={reminders} 
+        loading={loading} 
+        columnFilters={columnFilters}
+        setColumnFilters={setColumnFilters}
+      />
     </div>
   );
 }

@@ -28,22 +28,26 @@ import { Skeleton } from '../ui/skeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { BulkUpdateSheet } from './bulk-update-sheet';
 import { type Connection } from '@/lib/types';
-import { CheckSquare, Square } from 'lucide-react';
+import { CheckSquare } from 'lucide-react';
+import { FilterSheet } from './filter-sheet';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   loading: boolean;
+  columnFilters: ColumnFiltersState;
+  setColumnFilters: React.Dispatch<React.SetStateAction<ColumnFiltersState>>;
 }
 
 export function ConnectionsTable<TData extends Connection, TValue>({
   columns,
   data,
   loading,
+  columnFilters,
+  setColumnFilters
 }: DataTableProps<TData, TValue>) {
   const isMobile = useIsMobile();
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
 
@@ -85,10 +89,7 @@ export function ConnectionsTable<TData extends Connection, TValue>({
       // Default desktop visibility - show all
       const newVisibility: VisibilityState = {};
       table.getAllColumns().forEach(col => {
-        // We add a filter input to these columns, so we want to explicitly not hide them.
-        if (col.id !== 'name' && col.id !== 'email') {
           newVisibility[col.id] = true;
-        }
       });
       setColumnVisibility(newVisibility);
     }
@@ -101,7 +102,6 @@ export function ConnectionsTable<TData extends Connection, TValue>({
   );
 
   const selectedConnectionIds = table.getFilteredSelectedRowModel().rows.map(row => row.original.id);
-  const allFilteredIds = table.getFilteredRowModel().rows.map(row => row.original.id);
   
   const handleSelectAllFiltered = () => {
     const allIds = table.getFilteredRowModel().rows.reduce((acc, row) => {
@@ -115,6 +115,7 @@ export function ConnectionsTable<TData extends Connection, TValue>({
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row items-center gap-4">
         <div className="flex gap-2">
+            <FilterSheet filters={columnFilters} setFilters={setColumnFilters} />
             <BulkUpdateSheet 
                 selectedConnectionIds={selectedConnectionIds}
                 onSuccess={() => table.resetRowSelection()}

@@ -4,6 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import type { ColumnFiltersState } from '@tanstack/react-table';
 
 import { useAuth } from '@/hooks/use-auth';
 import { db } from '@/lib/firebase/client';
@@ -19,6 +20,8 @@ export default function CompanyConnectionsPage() {
   const params = useParams();
   const [connections, setConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+
 
   const companySlug = params.company as string;
   const companyName = companySlug
@@ -85,7 +88,13 @@ export default function CompanyConnectionsPage() {
 
       <Separator />
       
-      <ConnectionsTable columns={columns} data={connections} loading={loading} />
+      <ConnectionsTable 
+        columns={columns} 
+        data={connections} 
+        loading={loading}
+        columnFilters={columnFilters}
+        setColumnFilters={setColumnFilters}
+      />
     </div>
   );
 }
