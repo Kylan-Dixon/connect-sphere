@@ -12,7 +12,6 @@ import {
   type ColumnDef,
   type SortingState,
   type VisibilityState,
-  type ColumnFiltersState,
 } from '@tanstack/react-table';
 
 import {
@@ -29,22 +28,24 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { BulkUpdateSheet } from './bulk-update-sheet';
 import { type Connection } from '@/lib/types';
 import { CheckSquare } from 'lucide-react';
-import { FilterSheet } from './filter-sheet';
+import { FilterSheet, type Filter } from './filter-sheet';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   loading: boolean;
-  columnFilters: ColumnFiltersState;
-  setColumnFilters: React.Dispatch<React.SetStateAction<ColumnFiltersState>>;
+  filters: Filter[];
+  setFilters: (filters: Filter[]) => void;
+  uniqueCompanies: string[];
 }
 
 export function ConnectionsTable<TData extends Connection, TValue>({
   columns,
   data,
   loading,
-  columnFilters,
-  setColumnFilters
+  filters,
+  setFilters,
+  uniqueCompanies,
 }: DataTableProps<TData, TValue>) {
   const isMobile = useIsMobile();
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -58,13 +59,10 @@ export function ConnectionsTable<TData extends Connection, TValue>({
     getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
-    onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     state: {
       sorting,
-      columnFilters,
       columnVisibility,
       rowSelection,
     },
@@ -115,7 +113,11 @@ export function ConnectionsTable<TData extends Connection, TValue>({
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row items-center gap-4">
         <div className="flex gap-2">
-            <FilterSheet filters={columnFilters} setFilters={setColumnFilters} />
+            <FilterSheet 
+              filters={filters} 
+              setFilters={setFilters}
+              uniqueCompanies={uniqueCompanies} 
+            />
             <BulkUpdateSheet 
                 selectedConnectionIds={selectedConnectionIds}
                 onSuccess={() => table.resetRowSelection()}

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import type { ColumnFiltersState } from '@tanstack/react-table';
@@ -14,13 +14,14 @@ import { columns } from '@/components/connections/columns';
 import { BulkUpload } from '@/components/connections/bulk-upload';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import type { Filter } from '@/components/connections/filter-sheet';
 
 export default function CompanyConnectionsPage() {
   const { user } = useAuth();
   const params = useParams();
-  const [connections, setConnections] = useState<Connection[]>([]);
+  const [allConnections, setAllConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [filters, setFilters] = useState<Filter[]>([]);
 
 
   const companySlug = params.company as string;
@@ -30,15 +31,11 @@ export default function CompanyConnectionsPage() {
     .join(' ') as 'Mohan Financial' | 'Mohan Coaching';
 
   useEffect(() => {
-    console.log(`CompanyConnectionsPage (${companyName}): useEffect triggered.`, { user: !!user });
-    
     if (!user) {
-      console.log(`CompanyConnectionsPage (${companyName}): No user found, not fetching data.`);
       setLoading(false);
       return; 
     }
 
-    console.log(`CompanyConnectionsPage (${companyName}): User found, setting up Firestore listener.`);
     setLoading(true);
 
     const q = query(
@@ -46,17 +43,14 @@ export default function CompanyConnectionsPage() {
       where('associatedCompany', '==', companyName),
       orderBy('createdAt', 'desc')
     );
-    console.log(`CompanyConnectionsPage (${companyName}): Query created.`, { companyName });
 
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      console.log(`CompanyConnectionsPage (${companyName}): onSnapshot fired.`, { size: querySnapshot.size, empty: querySnapshot.empty });
       const connectionsData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       })) as Connection[];
-      console.log(`CompanyConnectionsPage (${companyName}): Parsed ${connectionsData.length} connections.`);
-      setConnections(connectionsData);
+      setAllConnections(connectionsData);
       setLoading(false);
     }, (error) => {
         console.error(`CompanyConnectionsPage (${companyName}): Error fetching connections:`, error);
@@ -64,10 +58,47 @@ export default function CompanyConnectionsPage() {
     });
 
     return () => {
-      console.log(`CompanyConnectionsPage (${companyName}): Unsubscribing from Firestore listener.`);
       unsubscribe();
     }
   }, [user, companyName]);
+
+  const filteredConnections = useMemo(() => {
+    if (filters.length === 0) {
+      return allConnections;
+    }
+
+    return allConnections.filter(connection => {
+      return filters.every(filter => {
+        const connectionValue = connection[filter.id as keyof Connection] as any;
+        const filterValue = filter.value;
+
+        if (!connectionValue) return false;
+
+        switch (filter.operator) {
+            case 'contains':
+                return String(connectionValue).toLowerCase().includes(String(filterValue).toLowerCase());
+            case 'not-contains':
+                return !String(connectionValue).toLowerCase().includes(String(filterValue).toLowerCase());
+            case 'equals':
+                return String(connectionValue).toLowerCase() === String(filterValue).toLowerCase();
+            case 'not-equals':
+                return String(connectionValue).toLowerCase() !== String(filterValue).toLowerCase();
+            case 'in':
+                 if (Array.isArray(filterValue) && filterValue.length > 0) {
+                    return filterValue.map(v => v.toLowerCase()).includes(String(connectionValue).toLowerCase());
+                }
+                return true; // if no companies selected, show all
+            default:
+                return true;
+        }
+      });
+    });
+  }, [allConnections, filters]);
+
+  const uniqueCompanies = useMemo(() => {
+    const companies = new Set(allConnections.map(c => c.company).filter(Boolean) as string[]);
+    return Array.from(companies);
+  }, [allConnections]);
 
   return (
     <div className="space-y-8">
@@ -90,10 +121,11 @@ export default function CompanyConnectionsPage() {
       
       <ConnectionsTable 
         columns={columns} 
-        data={connections} 
+        data={filteredConnections} 
         loading={loading}
-        columnFilters={columnFilters}
-        setColumnFilters={setColumnFilters}
+        filters={filters}
+        setFilters={setFilters}
+        uniqueCompanies={uniqueCompanies}
       />
     </div>
   );

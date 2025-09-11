@@ -14,61 +14,102 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Filter } from 'lucide-react';
-import type { ColumnFiltersState } from '@tanstack/react-table';
+import { Filter as FilterIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { MultiSelect } from '../ui/multi-select';
 
-interface FilterSheetProps {
-  filters: ColumnFiltersState;
-  setFilters: (filters: ColumnFiltersState) => void;
+type Operator = 'contains' | 'not-contains' | 'equals' | 'not-equals' | 'in';
+
+export interface Filter {
+    id: 'name' | 'email' | 'company' | 'title';
+    operator: Operator;
+    value: string | string[];
 }
 
-type FilterId = 'name' | 'email' | 'company' | 'title';
+interface FilterSheetProps {
+  filters: Filter[];
+  setFilters: (filters: Filter[]) => void;
+  uniqueCompanies: string[];
+}
 
-export function FilterSheet({ filters, setFilters }: FilterSheetProps) {
+const initialFilterState = {
+    name: { operator: 'contains', value: '' },
+    email: { operator: 'contains', value: '' },
+    title: { operator: 'contains', value: '' },
+    company: { operator: 'in', value: [] as string[] },
+};
+
+
+export function FilterSheet({ filters, setFilters, uniqueCompanies }: FilterSheetProps) {
   const [open, setOpen] = useState(false);
-  const [localFilters, setLocalFilters] = useState<Record<FilterId, string>>({
-    name: '',
-    email: '',
-    company: '',
-    title: '',
-  });
+  const [localFilters, setLocalFilters] = useState(initialFilterState);
 
   useEffect(() => {
     // Sync local state when external filters change
-    const newLocalFilters = { name: '', email: '', company: '', title: '' };
+    const newLocalFilters = JSON.parse(JSON.stringify(initialFilterState));
     filters.forEach(f => {
-      if (typeof f.id === 'string' && f.id in newLocalFilters) {
-        newLocalFilters[f.id as FilterId] = f.value as string;
+      if (f.id in newLocalFilters) {
+        newLocalFilters[f.id] = { operator: f.operator, value: f.value };
       }
     });
     setLocalFilters(newLocalFilters);
-  }, [filters]);
+  }, [filters, open]);
 
   const handleApply = () => {
-    const newFilters: ColumnFiltersState = Object.entries(localFilters)
-      .filter(([, value]) => value)
-      .map(([id, value]) => ({ id, value }));
+    const newFilters: Filter[] = Object.entries(localFilters)
+      .map(([id, filter]) => ({ ...filter, id }))
+      .filter(f => (Array.isArray(f.value) ? f.value.length > 0 : !!f.value)) as Filter[];
     setFilters(newFilters);
     setOpen(false);
   };
 
   const handleClear = () => {
-    setLocalFilters({
-      name: '',
-      email: '',
-      company: '',
-      title: '',
-    });
+    setLocalFilters(initialFilterState);
     setFilters([]);
     setOpen(false);
   };
+
+  const renderTextFilter = (id: 'name' | 'email' | 'title', label: string) => (
+     <div className="space-y-2">
+        <Label htmlFor={`filter-${id}`}>{label}</Label>
+        <div className="flex gap-2">
+            <Select
+                value={localFilters[id].operator}
+                onValueChange={(op: Operator) => setLocalFilters(prev => ({...prev, [id]: {...prev[id], operator: op}}))}
+            >
+                <SelectTrigger className="w-[150px]">
+                    <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="contains">Contains</SelectItem>
+                    <SelectItem value="not-contains">Doesn't Contain</SelectItem>
+                    <SelectItem value="equals">Equals</SelectItem>
+                    <SelectItem value="not-equals">Doesn't Equal</SelectItem>
+                </SelectContent>
+            </Select>
+            <Input 
+                id={`filter-${id}`}
+                placeholder={`Filter by ${label.toLowerCase()}...`}
+                value={localFilters[id].value as string}
+                onChange={(e) => setLocalFilters(prev => ({...prev, [id]: {...prev[id], value: e.target.value}}))}
+            />
+        </div>
+    </div>
+  )
+
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button variant="outline" className="w-full sm:w-auto">
-          <Filter className="mr-2 h-4 w-4" />
+          <FilterIcon className="mr-2 h-4 w-4" />
           Filter
         </Button>
       </SheetTrigger>
@@ -80,40 +121,17 @@ export function FilterSheet({ filters, setFilters }: FilterSheetProps) {
           </SheetDescription>
         </SheetHeader>
         <div className="py-8 space-y-4">
+            {renderTextFilter('name', 'Name')}
+            {renderTextFilter('email', 'Email')}
+            {renderTextFilter('title', 'Title')}
             <div className="space-y-2">
-                <Label htmlFor="filter-name">Name</Label>
-                <Input 
-                    id="filter-name"
-                    placeholder="Filter by name..."
-                    value={localFilters.name}
-                    onChange={(e) => setLocalFilters(prev => ({...prev, name: e.target.value}))}
-                />
-            </div>
-             <div className="space-y-2">
-                <Label htmlFor="filter-email">Email</Label>
-                <Input 
-                    id="filter-email"
-                    placeholder="Filter by email..."
-                    value={localFilters.email}
-                    onChange={(e) => setLocalFilters(prev => ({...prev, email: e.target.value}))}
-                />
-            </div>
-             <div className="space-y-2">
                 <Label htmlFor="filter-company">Company</Label>
-                <Input 
-                    id="filter-company"
-                    placeholder="Filter by company..."
-                    value={localFilters.company}
-                    onChange={(e) => setLocalFilters(prev => ({...prev, company: e.target.value}))}
-                />
-            </div>
-             <div className="space-y-2">
-                <Label htmlFor="filter-title">Title</Label>
-                <Input 
-                    id="filter-title"
-                    placeholder="Filter by title..."
-                    value={localFilters.title}
-                    onChange={(e) => setLocalFilters(prev => ({...prev, title: e.target.value}))}
+                 <MultiSelect
+                    options={uniqueCompanies.map(c => ({ value: c, label: c }))}
+                    selected={localFilters.company.value}
+                    onChange={(value) => setLocalFilters(prev => ({...prev, company: {...prev.company, value}}))}
+                    placeholder="Select companies..."
+                    className="w-full"
                 />
             </div>
         </div>

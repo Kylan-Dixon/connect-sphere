@@ -1,9 +1,8 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
-import type { ColumnFiltersState } from '@tanstack/react-table';
 
 import { useAuth } from '@/hooks/use-auth';
 import { db } from '@/lib/firebase/client';
@@ -13,37 +12,32 @@ import { columns } from '@/components/connections/columns';
 import { AddConnectionForm } from '@/components/connections/add-connection-form';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import type { Filter } from '@/components/connections/filter-sheet';
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const [connections, setConnections] = useState<Connection[]>([]);
+  const [allConnections, setAllConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [filters, setFilters] = useState<Filter[]>([]);
 
   useEffect(() => {
-    console.log('DashboardPage: useEffect triggered.', { user: !!user });
     if (!user) {
-      console.log('DashboardPage: No user found, not fetching data.');
       setLoading(false);
       return; 
     }
 
-    console.log('DashboardPage: User found, setting up Firestore listener.');
     setLoading(true);
     const q = query(
       collection(db, 'connections'),
       orderBy('createdAt', 'desc')
     );
-    console.log('DashboardPage: Query created.');
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      console.log('DashboardPage: onSnapshot fired.', { size: querySnapshot.size, empty: querySnapshot.empty });
       const connectionsData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       })) as Connection[];
-      console.log(`DashboardPage: Parsed ${connectionsData.length} connections.`);
-      setConnections(connectionsData);
+      setAllConnections(connectionsData);
       setLoading(false);
     }, (error) => {
         console.error("DashboardPage: Error fetching connections:", error);
@@ -51,10 +45,50 @@ export default function DashboardPage() {
     });
 
     return () => {
-      console.log('DashboardPage: Unsubscribing from Firestore listener.');
       unsubscribe();
     }
   }, [user]);
+
+  const filteredConnections = useMemo(() => {
+    if (filters.length === 0) {
+      return allConnections;
+    }
+
+    return allConnections.filter(connection => {
+      return filters.every(filter => {
+        const connectionValue = connection[filter.id as keyof Connection] as any;
+        const filterValue = filter.value;
+
+        if (filter.id === 'company' && filter.operator === 'in') {
+             if (Array.isArray(filterValue) && filterValue.length > 0) {
+                return filterValue.map(v => v.toLowerCase()).includes(String(connectionValue).toLowerCase());
+            }
+            return true; // if no companies selected, show all
+        }
+
+        if (!connectionValue && filter.operator !== 'not-equals') return false;
+
+
+        switch (filter.operator) {
+            case 'contains':
+                return String(connectionValue).toLowerCase().includes(String(filterValue).toLowerCase());
+            case 'not-contains':
+                return !String(connectionValue).toLowerCase().includes(String(filterValue).toLowerCase());
+            case 'equals':
+                return String(connectionValue).toLowerCase() === String(filterValue).toLowerCase();
+            case 'not-equals':
+                return String(connectionValue).toLowerCase() !== String(filterValue).toLowerCase();
+            default:
+                return true;
+        }
+      });
+    });
+  }, [allConnections, filters]);
+
+  const uniqueCompanies = useMemo(() => {
+    const companies = new Set(allConnections.map(c => c.company).filter(Boolean) as string[]);
+    return Array.from(companies);
+  }, [allConnections]);
 
   return (
     <div className="space-y-8">
@@ -76,10 +110,11 @@ export default function DashboardPage() {
         </div>
         <ConnectionsTable 
             columns={columns} 
-            data={connections} 
+            data={filteredConnections} 
             loading={loading}
-            columnFilters={columnFilters}
-            setColumnFilters={setColumnFilters}
+            filters={filters}
+            setFilters={setFilters}
+            uniqueCompanies={uniqueCompanies}
         />
       </div>
     </div>
