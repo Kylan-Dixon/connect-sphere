@@ -84,7 +84,9 @@ export const MultiSelect = React.forwardRef<
     }, [props.selected]);
 
 
-    const handleUnselect = (value: string) => {
+    const handleUnselect = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, value: string) => {
+        e.preventDefault();
+        e.stopPropagation();
         const newSelected = selected.filter((s) => s !== value);
         setSelected(newSelected);
         onChange?.(newSelected);
@@ -116,13 +118,16 @@ export const MultiSelect = React.forwardRef<
                       key={value}
                       variant="secondary"
                       className="mr-1 mb-1"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleUnselect(value);
-                      }}
+                      asChild
                     >
-                      {option?.label}
-                      <XCircle className="ml-2 h-4 w-4" />
+                      <button
+                        aria-label={`Remove ${option?.label} option`}
+                        onClick={(e) => handleUnselect(e, value)}
+                        className="flex items-center gap-1"
+                      >
+                         {option?.label}
+                        <XCircle className="ml-2 h-4 w-4" />
+                      </button>
                     </Badge>
                    )
                 })
@@ -144,7 +149,9 @@ export const MultiSelect = React.forwardRef<
                     key={option.value}
                     onSelect={() => {
                         if (selected.includes(option.value)) {
-                            handleUnselect(option.value);
+                            const newSelected = selected.filter((s) => s !== option.value);
+                            setSelected(newSelected);
+                            onChange?.(newSelected);
                         } else {
                             handleSelect(option.value);
                         }
