@@ -62,7 +62,17 @@ export const columns: ColumnDef<Connection>[] = [
   },
   {
     accessorKey: 'email',
-    header: 'Email',
+    header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            Email
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
   },
   {
     accessorKey: 'phoneNumber',
@@ -70,7 +80,17 @@ export const columns: ColumnDef<Connection>[] = [
   },
   {
     accessorKey: 'company',
-    header: 'Company',
+    header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            Company
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
   },
   {
     accessorKey: 'title',
@@ -92,6 +112,10 @@ export const columns: ColumnDef<Connection>[] = [
         </div>
       );
     },
+    filterFn: (row, id, value) => {
+        const tags = row.getValue(id) as string[];
+        return value.includes(tags);
+    }
   },
   {
     accessorKey: 'referrerName',
@@ -145,3 +169,5 @@ export const columns: ColumnDef<Connection>[] = [
     },
   },
 ];
+
+    

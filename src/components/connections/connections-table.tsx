@@ -74,27 +74,22 @@ export function ConnectionsTable<TData extends Connection, TValue>({
   React.useEffect(() => {
     // Hide columns on mobile
     if (isMobile) {
-      setColumnVisibility({
-        email: false,
-        phoneNumber: false,
-        company: false,
-        title: false,
-        referrerName: false,
-        reminderDate: false,
-      });
+      const newVisibility: VisibilityState = {};
+       table.getAllColumns().forEach(col => {
+        if (col.id !== 'select' && col.id !== 'name' && col.id !== 'actions' && col.id !== 'reminderDate') {
+          newVisibility[col.id] = false;
+        }
+       });
+       setColumnVisibility(newVisibility);
     } else {
-      // Default desktop visibility
-       setColumnVisibility({
-        email: true,
-        phoneNumber: true,
-        company: true,
-        title: true,
-        tags: true,
-        referrerName: true,
-        reminderDate: true,
+      // Default desktop visibility - show all
+      const newVisibility: VisibilityState = {};
+      table.getAllColumns().forEach(col => {
+        newVisibility[col.id] = true;
       });
+      setColumnVisibility(newVisibility);
     }
-  }, [isMobile]);
+  }, [isMobile, table]);
 
   const TableSkeleton = () => (
     <div className="space-y-2">
@@ -103,7 +98,6 @@ export function ConnectionsTable<TData extends Connection, TValue>({
   );
 
   const selectedConnectionIds = table.getFilteredSelectedRowModel().rows.map(row => row.original.id);
-
 
   return (
     <div className="space-y-4">
@@ -240,3 +234,5 @@ export function ConnectionsTable<TData extends Connection, TValue>({
     </div>
   );
 }
+
+    
