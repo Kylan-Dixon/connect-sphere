@@ -24,11 +24,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Skeleton } from '../ui/skeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { BulkUpdateSheet } from './bulk-update-sheet';
 import { type Connection } from '@/lib/types';
+import { CheckSquare, Square } from 'lucide-react';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -85,7 +85,10 @@ export function ConnectionsTable<TData extends Connection, TValue>({
       // Default desktop visibility - show all
       const newVisibility: VisibilityState = {};
       table.getAllColumns().forEach(col => {
-        newVisibility[col.id] = true;
+        // We add a filter input to these columns, so we want to explicitly not hide them.
+        if (col.id !== 'name' && col.id !== 'email') {
+          newVisibility[col.id] = true;
+        }
       });
       setColumnVisibility(newVisibility);
     }
@@ -93,27 +96,48 @@ export function ConnectionsTable<TData extends Connection, TValue>({
 
   const TableSkeleton = () => (
     <div className="space-y-2">
-      {[...Array(10)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+      {[...Array(10)].map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}
     </div>
   );
 
   const selectedConnectionIds = table.getFilteredSelectedRowModel().rows.map(row => row.original.id);
+  const allFilteredIds = table.getFilteredRowModel().rows.map(row => row.original.id);
+  
+  const handleSelectAllFiltered = () => {
+    const allIds = table.getFilteredRowModel().rows.reduce((acc, row) => {
+        acc[row.index] = true;
+        return acc;
+    }, {} as {[key: number]: boolean});
+    table.setRowSelection(allIds);
+  }
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row items-center gap-4">
-        <Input
-          placeholder="Filter by name..."
-          value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
-          onChange={(event) =>
-            table.getColumn('name')?.setFilterValue(event.target.value)
-          }
-          className="w-full sm:max-w-sm"
-        />
-        <BulkUpdateSheet 
-            selectedConnectionIds={selectedConnectionIds}
-            onSuccess={() => table.resetRowSelection()}
-        />
+        <div className="flex gap-2">
+            <BulkUpdateSheet 
+                selectedConnectionIds={selectedConnectionIds}
+                onSuccess={() => table.resetRowSelection()}
+            />
+            {table.getIsSomeRowsSelected() || table.getIsAllPageRowsSelected() ? (
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => table.resetRowSelection()}
+                >
+                    Clear Selection
+                </Button>
+            ) : null}
+        </div>
+        <Button 
+            variant="outline"
+            className="w-full sm:w-auto"
+            onClick={handleSelectAllFiltered}
+            disabled={loading || table.getFilteredRowModel().rows.length === 0}
+        >
+            <CheckSquare className="mr-2"/>
+            Select all {table.getFilteredRowModel().rows.length} matching
+        </Button>
       </div>
       <div className="rounded-md border">
         <Table>
@@ -122,7 +146,7 @@ export function ConnectionsTable<TData extends Connection, TValue>({
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead key={header.id} className="p-2 align-top">
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -234,5 +258,3 @@ export function ConnectionsTable<TData extends Connection, TValue>({
     </div>
   );
 }
-
-    

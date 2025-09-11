@@ -20,6 +20,7 @@ import Link from 'next/link';
 import { EditConnectionSheet } from './edit-connection-sheet';
 import { DeleteConnectionDialog } from './delete-connection-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '../ui/input';
 
 
 export const columns: ColumnDef<Connection>[] = [
@@ -49,13 +50,23 @@ export const columns: ColumnDef<Connection>[] = [
     accessorKey: 'name',
     header: ({ column }) => {
       return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Name
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
+        <div className="space-y-2">
+            <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            >
+            Name
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+            <Input
+                placeholder="Filter name..."
+                value={(column.getFilterValue() as string) ?? ''}
+                onChange={(event) =>
+                    column.setFilterValue(event.target.value)
+                }
+                className="h-8"
+            />
+        </div>
       );
     },
     cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
@@ -64,13 +75,23 @@ export const columns: ColumnDef<Connection>[] = [
     accessorKey: 'email',
     header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            Email
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+            <div className="space-y-2">
+                <Button
+                    variant="ghost"
+                    onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+                >
+                    Email
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+                <Input
+                    placeholder="Filter email..."
+                    value={(column.getFilterValue() as string) ?? ''}
+                    onChange={(event) =>
+                        column.setFilterValue(event.target.value)
+                    }
+                    className="h-8"
+                />
+          </div>
         );
       },
   },
@@ -169,5 +190,3 @@ export const columns: ColumnDef<Connection>[] = [
     },
   },
 ];
-
-    
