@@ -33,9 +33,9 @@ export async function getFirebaseAdmin(): Promise<FirebaseAdmin> {
   }
   
   // When running on Google Cloud infrastructure (like Firebase App Hosting),
-  // the Admin SDK can automatically discover the service account credentials
-  // by calling initializeApp() with no arguments. This is known as 
-  // Application Default Credentials (ADC).
+  // the Admin SDK can automatically discover the service account credentials.
+  // Explicitly providing the projectId from the FIREBASE_CONFIG env var
+  // helps the SDK initialize correctly in this environment.
   try {
     const firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG!);
     const app = initializeApp({
