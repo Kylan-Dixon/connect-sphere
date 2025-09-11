@@ -37,7 +37,10 @@ export async function getFirebaseAdmin(): Promise<FirebaseAdmin> {
   // by calling initializeApp() with no arguments. This is known as 
   // Application Default Credentials (ADC).
   try {
-    const app = initializeApp();
+    const firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG!);
+    const app = initializeApp({
+        projectId: firebaseConfig.projectId,
+    });
     const auth = getAuth(app);
     const db = getFirestore(app);
     
