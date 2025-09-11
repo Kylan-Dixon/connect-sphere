@@ -83,43 +83,45 @@ export const MultiSelect = React.forwardRef<
  
     return (
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            ref={ref}
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className={cn("h-auto min-h-10 w-full justify-between", className)}
-            onClick={() => setOpen(!open)}
-          >
-            <div className="flex gap-1 flex-wrap">
-              {selected.length > 0 ? (
-                selected.map((value) => {
-                   const option = options.find(o => o.value === value);
-                   return (
-                     <Badge
-                      key={value}
-                      variant="secondary"
-                      className="mr-1 pl-2 pr-1 py-1 flex items-center gap-1"
-                    >
-                      {option?.label}
-                      <div
-                        aria-label={`Remove ${option?.label} option`}
-                        onClick={(e) => handleUnselect(e, value)}
-                        className="rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer"
-                      >
-                        <XCircle className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-                      </div>
-                    </Badge>
-                   )
-                })
-              ) : (
-                <span>{placeholder ?? 'Select...'}</span>
-              )}
+        <div className="relative w-full">
+            <PopoverTrigger asChild>
+                <Button
+                    ref={ref}
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={open}
+                    className={cn("h-auto min-h-10 w-full justify-between", className)}
+                    onClick={() => setOpen(!open)}
+                >
+                    <span className="truncate">
+                        {selected.length === 0 ? (placeholder ?? 'Select...') : ''}
+                    </span>
+                    <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+            </PopoverTrigger>
+            <div className="absolute top-1/2 -translate-y-1/2 left-3 flex flex-wrap gap-1 items-center">
+                {selected.map((value) => {
+                    const option = options.find(o => o.value === value);
+                    return (
+                        <Badge
+                            key={value}
+                            variant="secondary"
+                            className="pl-2 pr-1 py-1 flex items-center gap-1"
+                        >
+                            <span className="truncate">{option?.label}</span>
+                            <div
+                                aria-label={`Remove ${option?.label} option`}
+                                onClick={(e) => handleUnselect(e, value)}
+                                onMouseDown={(e) => e.stopPropagation()} // Prevents popover from closing on mouse down
+                                className="rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer"
+                            >
+                                <XCircle className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                            </div>
+                        </Badge>
+                    )
+                })}
             </div>
-            <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
+        </div>
         <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
           <Command>
             <CommandInput placeholder="Search..." />
