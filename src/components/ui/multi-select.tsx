@@ -17,9 +17,6 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
 
@@ -39,9 +36,21 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
   ({ options, onChange, placeholder, className, selected = [], ...props }, ref) => {
     const [open, setOpen] = React.useState(false);
 
-    const handleUnselect = (value: string) => {
+    const handleUnselect = (e: React.MouseEvent<HTMLDivElement>, value: string) => {
+      e.preventDefault();
+      e.stopPropagation();
       onChange(selected.filter((s) => s !== value));
     };
+    
+    const handleSelect = (value: string) => {
+        let newSelected: string[];
+        if (selected.includes(value)) {
+            newSelected = selected.filter((s) => s !== value);
+        } else {
+            newSelected = [...selected, value];
+        }
+        onChange(newSelected);
+    }
 
     return (
       <div className={cn('w-full flex flex-col items-start', className)}>
@@ -71,15 +80,7 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
                     return (
                       <CommandItem
                         key={option.value}
-                        onSelect={() => {
-                          let newSelected: string[];
-                          if (isSelected) {
-                            newSelected = selected.filter((s) => s !== option.value);
-                          } else {
-                            newSelected = [...selected, option.value];
-                          }
-                          onChange(newSelected);
-                        }}
+                        onSelect={() => handleSelect(option.value)}
                       >
                         <CheckIcon
                           className={cn(
@@ -108,7 +109,7 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
                 >
                 <span className="truncate">{option!.label}</span>
                 <div
-                    onClick={() => handleUnselect(option!.value)}
+                    onClick={(e) => handleUnselect(e, option!.value)}
                     className="rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer"
                     aria-label={`Remove ${option!.label}`}
                 >
