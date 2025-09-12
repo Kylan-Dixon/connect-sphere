@@ -7,8 +7,8 @@ import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestor
 import type { ColumnFiltersState } from '@tanstack/react-table';
 
 import { useAuth } from '@/hooks/use-auth';
-import { db from '@/lib/firebase/client';
-import { type Connection } from '@/lib/types';
+import { db } from '@/lib/firebase/client';
+import type { Connection } from '@/lib/types';
 import { ConnectionsTable } from '@/components/connections/connections-table';
 import { columns } from '@/components/connections/columns';
 import { BulkUpload } from '@/components/connections/bulk-upload';
