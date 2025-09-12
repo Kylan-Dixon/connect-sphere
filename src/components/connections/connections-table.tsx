@@ -114,6 +114,7 @@ export function ConnectionsTable<TData extends Connection, TValue>({
             <FilterSheet 
               filters={filters} 
               setFilters={setFilters}
+              connections={data}
             />
             <BulkUpdateSheet 
                 selectedConnectionIds={selectedConnectionIds}

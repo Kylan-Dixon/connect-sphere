@@ -7,7 +7,7 @@ import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestor
 import type { ColumnFiltersState } from '@tanstack/react-table';
 
 import { useAuth } from '@/hooks/use-auth';
-import { db } from '@/lib/firebase/client';
+import { db from '@/lib/firebase/client';
 import { type Connection } from '@/lib/types';
 import { ConnectionsTable } from '@/components/connections/connections-table';
 import { columns } from '@/components/connections/columns';
@@ -76,12 +76,24 @@ export default function CompanyConnectionsPage() {
 
         switch (filter.operator) {
             case 'contains':
+                if (Array.isArray(filterValue)) {
+                    return filterValue.includes(connectionValue);
+                }
                 return String(connectionValue).toLowerCase().includes(String(filterValue).toLowerCase());
             case 'not-contains':
+                 if (Array.isArray(filterValue)) {
+                    return !filterValue.includes(connectionValue);
+                }
                 return !String(connectionValue).toLowerCase().includes(String(filterValue).toLowerCase());
             case 'equals':
+                 if (Array.isArray(filterValue)) {
+                    return filterValue.includes(connectionValue);
+                }
                 return String(connectionValue).toLowerCase() === String(filterValue).toLowerCase();
             case 'not-equals':
+                 if (Array.isArray(filterValue)) {
+                    return !filterValue.includes(connectionValue);
+                }
                 return String(connectionValue).toLowerCase() !== String(filterValue).toLowerCase();
             default:
                 return true;
