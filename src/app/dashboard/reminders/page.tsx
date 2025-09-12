@@ -58,13 +58,6 @@ export default function RemindersPage() {
         const connectionValue = connection[filter.id as keyof Connection] as any;
         const filterValue = filter.value;
 
-        if (filter.id === 'company' && filter.operator === 'in') {
-             if (Array.isArray(filterValue) && filterValue.length > 0) {
-                return filterValue.map(v => v.toLowerCase()).includes(String(connectionValue).toLowerCase());
-            }
-            return true; // if no companies selected, show all
-        }
-
         if (!connectionValue && filter.operator !== 'not-equals') return false;
 
 
@@ -84,11 +77,6 @@ export default function RemindersPage() {
     });
   }, [allReminders, filters]);
 
-  const uniqueCompanies = useMemo(() => {
-    const companies = new Set(allReminders.map(c => c.company).filter(Boolean) as string[]);
-    return Array.from(companies);
-  }, [allReminders]);
-
   return (
     <div className="space-y-4">
       <h2 className="text-3xl font-bold tracking-tight font-headline">
@@ -103,7 +91,6 @@ export default function RemindersPage() {
         loading={loading} 
         filters={filters}
         setFilters={setFilters}
-        uniqueCompanies={uniqueCompanies}
       />
     </div>
   );

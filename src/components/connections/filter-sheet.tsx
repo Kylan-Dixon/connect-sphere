@@ -24,24 +24,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-type Operator = 'contains' | 'not-contains' | 'equals' | 'not-equals' | 'in';
+type Operator = 'contains' | 'not-contains' | 'equals' | 'not-equals';
 
 export interface Filter {
-    id: 'name' | 'email' | 'company' | 'title';
+    id: 'name' | 'email' | 'title';
     operator: Operator;
-    value: string | string[];
+    value: string;
 }
 
 interface FilterSheetProps {
   filters: Filter[];
   setFilters: (filters: Filter[]) => void;
-  uniqueCompanies: string[];
 }
 
 const initialFilterState = {
-    name: { operator: 'contains', value: '' },
-    email: { operator: 'contains', value: '' },
-    title: { operator: 'contains', value: '' },
+    name: { operator: 'contains' as Operator, value: '' },
+    email: { operator: 'contains' as Operator, value: '' },
+    title: { operator: 'contains' as Operator, value: '' },
 };
 
 
@@ -63,7 +62,7 @@ export function FilterSheet({ filters, setFilters }: FilterSheetProps) {
   const handleApply = () => {
     const newFilters: Filter[] = Object.entries(localFilters)
       .map(([id, filter]) => ({ ...filter, id }))
-      .filter(f => (Array.isArray(f.value) ? f.value.length > 0 : !!f.value)) as Filter[];
+      .filter(f => !!f.value) as Filter[];
     setFilters(newFilters);
     setOpen(false);
   };

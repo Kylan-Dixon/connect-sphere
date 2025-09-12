@@ -59,15 +59,7 @@ export default function DashboardPage() {
         const connectionValue = connection[filter.id as keyof Connection] as any;
         const filterValue = filter.value;
 
-        if (filter.id === 'company' && filter.operator === 'in') {
-             if (Array.isArray(filterValue) && filterValue.length > 0) {
-                return filterValue.map(v => v.toLowerCase()).includes(String(connectionValue).toLowerCase());
-            }
-            return true; // if no companies selected, show all
-        }
-
         if (!connectionValue && filter.operator !== 'not-equals') return false;
-
 
         switch (filter.operator) {
             case 'contains':
@@ -84,11 +76,6 @@ export default function DashboardPage() {
       });
     });
   }, [allConnections, filters]);
-
-  const uniqueCompanies = useMemo(() => {
-    const companies = new Set(allConnections.map(c => c.company).filter(Boolean) as string[]);
-    return Array.from(companies);
-  }, [allConnections]);
 
   return (
     <div className="space-y-8">
@@ -114,7 +101,6 @@ export default function DashboardPage() {
             loading={loading}
             filters={filters}
             setFilters={setFilters}
-            uniqueCompanies={uniqueCompanies}
         />
       </div>
     </div>

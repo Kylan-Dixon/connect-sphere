@@ -83,22 +83,12 @@ export default function CompanyConnectionsPage() {
                 return String(connectionValue).toLowerCase() === String(filterValue).toLowerCase();
             case 'not-equals':
                 return String(connectionValue).toLowerCase() !== String(filterValue).toLowerCase();
-            case 'in':
-                 if (Array.isArray(filterValue) && filterValue.length > 0) {
-                    return filterValue.map(v => v.toLowerCase()).includes(String(connectionValue).toLowerCase());
-                }
-                return true; // if no companies selected, show all
             default:
                 return true;
         }
       });
     });
   }, [allConnections, filters]);
-
-  const uniqueCompanies = useMemo(() => {
-    const companies = new Set(allConnections.map(c => c.company).filter(Boolean) as string[]);
-    return Array.from(companies);
-  }, [allConnections]);
 
   return (
     <div className="space-y-8">
@@ -125,7 +115,6 @@ export default function CompanyConnectionsPage() {
         loading={loading}
         filters={filters}
         setFilters={setFilters}
-        uniqueCompanies={uniqueCompanies}
       />
     </div>
   );

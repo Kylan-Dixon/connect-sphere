@@ -36,7 +36,6 @@ interface DataTableProps<TData, TValue> {
   loading: boolean;
   filters: Filter[];
   setFilters: (filters: Filter[]) => void;
-  uniqueCompanies: string[];
 }
 
 export function ConnectionsTable<TData extends Connection, TValue>({
@@ -45,7 +44,6 @@ export function ConnectionsTable<TData extends Connection, TValue>({
   loading,
   filters,
   setFilters,
-  uniqueCompanies,
 }: DataTableProps<TData, TValue>) {
   const isMobile = useIsMobile();
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -116,7 +114,6 @@ export function ConnectionsTable<TData extends Connection, TValue>({
             <FilterSheet 
               filters={filters} 
               setFilters={setFilters}
-              uniqueCompanies={uniqueCompanies} 
             />
             <BulkUpdateSheet 
                 selectedConnectionIds={selectedConnectionIds}
