@@ -42,11 +42,10 @@ const initialFilterState = {
     name: { operator: 'contains', value: '' },
     email: { operator: 'contains', value: '' },
     title: { operator: 'contains', value: '' },
-    company: { operator: 'in', value: [] as string[] },
 };
 
 
-export function FilterSheet({ filters, setFilters, uniqueCompanies }: FilterSheetProps) {
+export function FilterSheet({ filters, setFilters }: FilterSheetProps) {
   const [open, setOpen] = useState(false);
   const [localFilters, setLocalFilters] = useState(initialFilterState);
 
