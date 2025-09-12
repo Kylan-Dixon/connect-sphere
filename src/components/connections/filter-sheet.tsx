@@ -23,7 +23,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MultiSelect } from '../ui/multi-select';
 
 type Operator = 'contains' | 'not-contains' | 'equals' | 'not-equals' | 'in';
 
@@ -124,16 +123,6 @@ export function FilterSheet({ filters, setFilters, uniqueCompanies }: FilterShee
             {renderTextFilter('name', 'Name')}
             {renderTextFilter('email', 'Email')}
             {renderTextFilter('title', 'Title')}
-            <div className="space-y-2">
-                <Label htmlFor="filter-company">Company</Label>
-                 <MultiSelect
-                    options={uniqueCompanies.map(c => ({ value: c, label: c }))}
-                    selected={localFilters.company.value}
-                    onChange={(value) => setLocalFilters(prev => ({...prev, company: {...prev.company, value}}))}
-                    placeholder="Select companies..."
-                    className="w-full"
-                />
-            </div>
         </div>
         <SheetFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={handleClear}>Clear Filters</Button>
