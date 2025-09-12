@@ -1,7 +1,7 @@
 
 'use client';
 import * as React from 'react';
-import { XCircle } from 'lucide-react';
+import { X } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -32,6 +32,11 @@ export function MultiSelect({ options, onChange, placeholder, className, selecte
     onChange(newSelected);
   };
 
+  const handleUnselect = (value: string) => {
+    const newSelected = selected.filter((s) => s !== value);
+    onChange(newSelected);
+  }
+
   const filteredOptions = options.filter(option => 
     option.label.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -42,9 +47,10 @@ export function MultiSelect({ options, onChange, placeholder, className, selecte
         placeholder={placeholder || "Search..."}
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
+        className="w-full"
       />
-      <ScrollArea className="h-48 w-full rounded-md border p-2">
-          <div className="flex flex-col gap-2">
+      <ScrollArea className="h-48 w-full rounded-md border">
+          <div className="p-2 flex flex-col gap-1">
               {filteredOptions.length > 0 ? filteredOptions.map((option) => {
                   const isSelected = selected.includes(option.value);
                   return (
@@ -59,7 +65,7 @@ export function MultiSelect({ options, onChange, placeholder, className, selecte
                               onCheckedChange={() => handleSelect(option.value)}
                               aria-label={`Select ${option.label}`}
                           />
-                          <Label htmlFor={`multiselect-${option.value}`} className="cursor-pointer w-full">
+                          <Label htmlFor={`multiselect-${option.value}`} className="cursor-pointer w-full font-normal">
                               {option.label}
                           </Label>
                       </div>
@@ -69,30 +75,29 @@ export function MultiSelect({ options, onChange, placeholder, className, selecte
               )}
           </div>
       </ScrollArea>
-      <div className="flex gap-1 flex-wrap">
-          {selected
-          .map((selectedValue) => options.find(option => option.value === selectedValue))
-          .filter(Boolean)
-          .map((option) => (
-              <Badge
-              key={option!.value}
-              variant="secondary"
-              className="pl-2 pr-1 py-1 flex items-center gap-1"
-              >
-              <span className="truncate">{option!.label}</span>
-              <div
-                  onClick={(e) => {
-                      e.stopPropagation();
-                      handleSelect(option!.value)
-                  }}
-                  className="rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer"
-                  aria-label={`Remove ${option!.label}`}
-              >
-                  <XCircle className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-              </div>
-              </Badge>
-          ))}
-      </div>
+      {selected.length > 0 && (
+        <div className="flex gap-1 flex-wrap">
+            {selected
+            .map((selectedValue) => options.find(option => option.value === selectedValue))
+            .filter(Boolean)
+            .map((option) => (
+                <Badge
+                key={option!.value}
+                variant="secondary"
+                className="pl-2 pr-1 py-1 flex items-center gap-1"
+                >
+                <span className="truncate">{option!.label}</span>
+                <button
+                    onClick={() => handleUnselect(option!.value)}
+                    className="rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                    aria-label={`Remove ${option!.label}`}
+                >
+                    <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                </button>
+                </Badge>
+            ))}
+        </div>
+      )}
     </div>
   );
 }
