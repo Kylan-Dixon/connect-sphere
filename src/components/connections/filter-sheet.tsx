@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Filter as FilterIcon } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Select,
   SelectContent,
@@ -24,11 +24,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from '../ui/checkbox';
+import type { Connection } from '@/lib/types';
+import { MultiSelect } from '../ui/multi-select';
 
 type Operator = 'contains' | 'not-contains' | 'equals' | 'not-equals';
 
 export interface Filter {
-    id: 'name' | 'email' | 'title' | 'associatedCompany';
+    id: 'name' | 'email' | 'title' | 'associatedCompany' | 'company';
     operator: Operator;
     value: string | string[];
 }
@@ -36,7 +38,7 @@ export interface Filter {
 interface FilterSheetProps {
   filters: Filter[];
   setFilters: (filters: Filter[]) => void;
-  connections: any[];
+  connections: Connection[];
 }
 
 const initialFilterState = {
@@ -44,14 +46,25 @@ const initialFilterState = {
     email: { operator: 'contains' as Operator, value: '' },
     title: { operator: 'contains' as Operator, value: '' },
     associatedCompany: { operator: 'contains' as Operator, value: [] as string[] },
+    company: { operator: 'contains' as Operator, value: [] as string[] },
 };
 
 
-export function FilterSheet({ filters, setFilters }: FilterSheetProps) {
+export function FilterSheet({ filters, setFilters, connections }: FilterSheetProps) {
   const [open, setOpen] = useState(false);
   const [localFilters, setLocalFilters] = useState(initialFilterState);
 
   const companies = ['Mohan Financial', 'Mohan Coaching'];
+
+  const connectionCompanies = useMemo(() => {
+    const companySet = new Set<string>();
+    connections.forEach(c => {
+      if (c.company) {
+        companySet.add(c.company);
+      }
+    });
+    return Array.from(companySet).sort();
+  }, [connections]);
 
   useEffect(() => {
     // Sync local state when external filters change
@@ -67,7 +80,12 @@ export function FilterSheet({ filters, setFilters }: FilterSheetProps) {
   const handleApply = () => {
     const newFilters: Filter[] = Object.entries(localFilters)
       .map(([id, filter]) => ({ ...filter, id }))
-      .filter(f => !!f.value && f.value.length > 0) as Filter[];
+      .filter(f => {
+        if (Array.isArray(f.value)) {
+          return f.value.length > 0;
+        }
+        return !!f.value;
+      }) as Filter[];
     setFilters(newFilters);
     setOpen(false);
   };
@@ -139,6 +157,16 @@ export function FilterSheet({ filters, setFilters }: FilterSheetProps) {
             {renderTextFilter('name', 'Name')}
             {renderTextFilter('email', 'Email')}
             {renderTextFilter('title', 'Title')}
+
+            <div className="space-y-2">
+              <Label>Company</Label>
+              <MultiSelect
+                  options={connectionCompanies}
+                  selected={localFilters.company.value as string[]}
+                  onChange={(selected) => setLocalFilters(prev => ({...prev, company: {...prev.company, value: selected}}))}
+                  placeholder='Select companies...'
+              />
+            </div>
 
             <div className="space-y-2">
                 <Label>Associated Company</Label>
