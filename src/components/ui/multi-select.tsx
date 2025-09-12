@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 
@@ -43,7 +42,7 @@ export function MultiSelect({
         onChange={(e) => setSearch(e.target.value)}
         className="w-full"
       />
-      <ScrollArea className="h-40 w-full rounded-md border p-2">
+      <div className="h-96 w-full rounded-md border p-2 overflow-y-auto">
         <div className="space-y-1">
           {filteredOptions.length > 0 ? (
             filteredOptions.map((option) => (
@@ -68,7 +67,7 @@ export function MultiSelect({
             <p className="p-2 text-sm text-muted-foreground">No companies found.</p>
           )}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 }

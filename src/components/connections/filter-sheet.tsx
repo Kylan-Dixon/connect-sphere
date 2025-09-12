@@ -23,7 +23,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from '../ui/checkbox';
 import type { Connection } from '@/lib/types';
 import { MultiSelect } from '../ui/multi-select';
 
@@ -67,7 +66,6 @@ export function FilterSheet({ filters, setFilters, connections }: FilterSheetPro
   }, [connections]);
 
   useEffect(() => {
-    // Sync local state when external filters change
     const newLocalFilters = JSON.parse(JSON.stringify(initialFilterState));
     filters.forEach(f => {
       if (f.id in newLocalFilters) {
@@ -95,19 +93,6 @@ export function FilterSheet({ filters, setFilters, connections }: FilterSheetPro
     setFilters([]);
     setOpen(false);
   };
-
-  const handleCompanyCheckedChange = (checked: boolean, company: string) => {
-    setLocalFilters(prev => {
-        const currentCompanies = (prev.associatedCompany.value as string[]) || [];
-        let newCompanies: string[];
-        if (checked) {
-            newCompanies = [...currentCompanies, company];
-        } else {
-            newCompanies = currentCompanies.filter(c => c !== company);
-        }
-        return {...prev, associatedCompany: {...prev.associatedCompany, value: newCompanies}}
-    })
-  }
 
   const renderTextFilter = (id: 'name' | 'email' | 'title', label: string) => (
      <div className="space-y-2">
@@ -146,14 +131,14 @@ export function FilterSheet({ filters, setFilters, connections }: FilterSheetPro
           Filter
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-full overflow-y-auto sm:max-w-md">
+      <SheetContent className="w-full sm:max-w-md flex flex-col">
         <SheetHeader>
           <SheetTitle className="font-headline">Filter Connections</SheetTitle>
           <SheetDescription>
             Apply filters to narrow down your connections.
           </SheetDescription>
         </SheetHeader>
-        <div className="py-8 space-y-4">
+        <div className="flex-1 py-8 space-y-4 overflow-y-auto">
             {renderTextFilter('name', 'Name')}
             {renderTextFilter('email', 'Email')}
             {renderTextFilter('title', 'Title')}
@@ -170,23 +155,15 @@ export function FilterSheet({ filters, setFilters, connections }: FilterSheetPro
 
             <div className="space-y-2">
                 <Label>Associated Company</Label>
-                <div className="space-y-2">
-                    {companies.map(company => (
-                        <div key={company} className="flex items-center space-x-2">
-                            <Checkbox 
-                                id={`filter-company-${company.replace(/\s+/g, '-')}`}
-                                checked={(localFilters.associatedCompany.value as string[]).includes(company)}
-                                onCheckedChange={(checked) => handleCompanyCheckedChange(!!checked, company)}
-                            />
-                            <Label htmlFor={`filter-company-${company.replace(/\s+/g, '-')}`} className="font-normal">
-                                {company}
-                            </Label>
-                        </div>
-                    ))}
-                </div>
+                <MultiSelect
+                    options={companies}
+                    selected={localFilters.associatedCompany.value as string[]}
+                    onChange={(selected) => setLocalFilters(prev => ({...prev, associatedCompany: {...prev.associatedCompany, value: selected}}))}
+                    placeholder="Select associated companies..."
+                />
             </div>
         </div>
-        <SheetFooter className="gap-2 sm:gap-0">
+        <SheetFooter className="gap-2 sm:gap-0 border-t pt-4">
             <Button variant="outline" onClick={handleClear}>Clear Filters</Button>
             <SheetClose asChild>
                 <Button onClick={handleApply}>Apply Filters</Button>
