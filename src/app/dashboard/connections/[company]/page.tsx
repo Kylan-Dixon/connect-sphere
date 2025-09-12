@@ -4,7 +4,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
-import type { ColumnFiltersState } from '@tanstack/react-table';
 
 import { useAuth } from '@/hooks/use-auth';
 import { db } from '@/lib/firebase/client';

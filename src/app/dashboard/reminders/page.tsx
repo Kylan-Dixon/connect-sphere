@@ -5,7 +5,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 
 import { useAuth } from '@/hooks/use-auth';
-import { db from '@/lib/firebase/client';
+import { db } from '@/lib/firebase/client';
 import { type Connection } from '@/lib/types';
 import { ConnectionsTable } from '@/components/connections/connections-table';
 import { remindersColumns } from '@/components/connections/reminders-columns';
