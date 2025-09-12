@@ -1,24 +1,14 @@
 
 'use client';
 import * as React from 'react';
-import { CheckIcon, XCircle } from 'lucide-react';
+import { Check, XCircle } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
 interface MultiSelectProps {
   options: {
@@ -32,72 +22,55 @@ interface MultiSelectProps {
   selected: string[];
 }
 
-export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
+export const MultiSelect = React.forwardRef<HTMLDivElement, MultiSelectProps>(
   ({ options, onChange, placeholder, className, selected = [], ...props }, ref) => {
-    const [open, setOpen] = React.useState(false);
+    const [searchTerm, setSearchTerm] = React.useState('');
 
-    const handleUnselect = (e: React.MouseEvent<HTMLDivElement>, value: string) => {
-      e.preventDefault();
-      e.stopPropagation();
-      onChange(selected.filter((s) => s !== value));
-    };
-    
     const handleSelect = (value: string) => {
-        let newSelected: string[];
-        if (selected.includes(value)) {
-            newSelected = selected.filter((s) => s !== value);
-        } else {
-            newSelected = [...selected, value];
-        }
-        onChange(newSelected);
-    }
+      const newSelected = selected.includes(value)
+        ? selected.filter((s) => s !== value)
+        : [...selected, value];
+      onChange(newSelected);
+    };
+
+    const filteredOptions = options.filter(option => 
+      option.label.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
-      <div className={cn('w-full flex flex-col items-start', className)}>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button
-              ref={ref}
-              variant="outline"
-              role="combobox"
-              aria-expanded={open}
-              className="w-full justify-between"
-              onClick={() => setOpen(true)}
-            >
-              <span className="text-muted-foreground">
-                {placeholder ?? 'Select...'}
-              </span>
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="w-full max-w-sm p-0">
-            <Command>
-              <CommandInput placeholder="Search..." />
-              <CommandList>
-                <CommandEmpty>No item found.</CommandEmpty>
-                <CommandGroup>
-                  {options.map((option) => {
+      <div className={cn('w-full flex flex-col items-start gap-2', className)} ref={ref}>
+        <Input 
+          placeholder="Search companies..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <ScrollArea className="h-48 w-full rounded-md border p-2">
+            <div className="flex flex-col gap-2">
+                {filteredOptions.length > 0 ? filteredOptions.map((option) => {
                     const isSelected = selected.includes(option.value);
                     return (
-                      <CommandItem
-                        key={option.value}
-                        onSelect={() => handleSelect(option.value)}
-                      >
-                        <CheckIcon
-                          className={cn(
-                            'mr-2 h-4 w-4',
-                            isSelected ? 'opacity-100' : 'opacity-0'
-                          )}
-                        />
-                        {option.label}
-                      </CommandItem>
-                    );
-                  })}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </DialogContent>
-        </Dialog>
-        <div className="flex gap-1 flex-wrap mt-2">
+                        <div
+                            key={option.value}
+                            className="flex items-center gap-2 rounded-md p-2 hover:bg-accent transition-colors cursor-pointer"
+                            onClick={() => handleSelect(option.value)}
+                        >
+                            <Checkbox
+                                id={`multiselect-${option.value}`}
+                                checked={isSelected}
+                                onCheckedChange={() => handleSelect(option.value)}
+                                aria-label={`Select ${option.label}`}
+                            />
+                            <Label htmlFor={`multiselect-${option.value}`} className="cursor-pointer w-full">
+                                {option.label}
+                            </Label>
+                        </div>
+                    )
+                }) : (
+                    <p className="text-sm text-muted-foreground text-center p-4">No companies found.</p>
+                )}
+            </div>
+        </ScrollArea>
+        <div className="flex gap-1 flex-wrap">
             {selected
             .map((selectedValue) => options.find(option => option.value === selectedValue))
             .filter(Boolean)
@@ -109,7 +82,10 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
                 >
                 <span className="truncate">{option!.label}</span>
                 <div
-                    onClick={(e) => handleUnselect(e, option!.value)}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        handleSelect(option!.value)
+                    }}
                     className="rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer"
                     aria-label={`Remove ${option!.label}`}
                 >
