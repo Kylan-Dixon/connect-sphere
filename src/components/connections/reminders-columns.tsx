@@ -157,11 +157,6 @@ export const remindersColumns: ColumnDef<Connection>[] = [
                 <DropdownMenuItem asChild>
                     <EditConnectionSheet connection={connection} />
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                onClick={() => navigator.clipboard.writeText(connection.id)}
-                >
-                Copy connection ID
-                </DropdownMenuItem>
                 {connection.linkedInUrl && (
                     <DropdownMenuItem asChild>
                         <Link href={connection.linkedInUrl} target="_blank" rel="noopener noreferrer">
@@ -179,5 +174,3 @@ export const remindersColumns: ColumnDef<Connection>[] = [
     },
   },
 ];
-
-    

@@ -5,8 +5,8 @@ import { useEffect, useState, useMemo } from 'react';
 import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
 
 import { useAuth } from '@/hooks/use-auth';
-import { db from '@/lib/firebase/client';
-import { type Connection } from '@/lib/types';
+import { db } from '@/lib/firebase/client';
+import type { Connection } from '@/lib/types';
 import { ConnectionsTable } from '@/components/connections/connections-table';
 import { columns } from '@/components/connections/columns';
 import { AddConnectionForm } from '@/components/connections/add-connection-form';
