@@ -71,28 +71,6 @@ export function MultiSelect({
           )}
         </div>
       </ScrollArea>
-      {selected.length > 0 && (
-        <div className="flex flex-wrap gap-1 pt-1">
-          {selected.map((value) => (
-            <Badge
-              key={value}
-              variant="secondary"
-              className="flex items-center gap-1"
-            >
-              {value}
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleSelect(value);
-                }}
-                className="rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
-              >
-                <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
-              </button>
-            </Badge>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
