@@ -13,6 +13,10 @@ import { AddConnectionForm } from '@/components/connections/add-connection-form'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import type { Filter } from '@/components/connections/filter-sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { BulkAction } from '@/components/connections/bulk-action';
+import { Trash } from 'lucide-react';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -91,15 +95,45 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-headline text-2xl">Add a New Connection</CardTitle>
-          <CardDescription>Enter the details of your new connection here.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <AddConnectionForm />
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-headline text-2xl">Add a New Connection</CardTitle>
+            <CardDescription>Enter the details of your new connection here.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AddConnectionForm />
+          </CardContent>
+        </Card>
+        <Card>
+            <CardHeader>
+                <CardTitle>Bulk Actions</CardTitle>
+                <CardDescription>
+                    Perform bulk actions like deleting connections by uploading a file with names or emails.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Sheet>
+                    <SheetTrigger asChild>
+                        <Button variant="destructive">
+                            <Trash className="mr-2 h-4 w-4"/>
+                            Perform Bulk Action
+                        </Button>
+                    </SheetTrigger>
+                    <SheetContent className="w-full sm:max-w-3xl overflow-y-auto">
+                        <SheetHeader className="mb-4">
+                            <SheetTitle>Bulk Connection Action</SheetTitle>
+                            <SheetDescription>
+                                Upload a file to perform a bulk action on connections.
+                                You will be asked to map your file columns to match against existing data.
+                            </SheetDescription>
+                        </SheetHeader>
+                        <BulkAction />
+                    </SheetContent>
+                </Sheet>
+            </CardContent>
+        </Card>
+      </div>
       
       <Separator />
 

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import * as XLSX from 'xlsx';
 import { useAuth } from '@/hooks/use-auth';
 import { findBulkMatches, bulkConnectionsAction } from '@/lib/actions';
@@ -17,7 +17,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 
 interface BulkActionProps {
-  associatedCompany: 'Mohan Financial' | 'Mohan Coaching';
+  associatedCompany?: 'Mohan Financial' | 'Mohan Coaching' | 'All';
 }
 
 type UploadStep = 'select' | 'map' | 'review' | 'uploading';
@@ -52,7 +52,7 @@ const headerMappingSuggestions: { [key: string]: MappedField } = {
   'phone number': 'mobilePhone',
 };
 
-export function BulkAction({ associatedCompany }: BulkActionProps) {
+export function BulkAction({ associatedCompany: initialCompany }: BulkActionProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   
@@ -65,6 +65,7 @@ export function BulkAction({ associatedCompany }: BulkActionProps) {
   const [matches, setMatches] = useState<any[]>([]);
   const [selectedMatches, setSelectedMatches] = useState<string[]>([]);
   const [isFinding, setIsFinding] = useState(false);
+  const [companyScope, setCompanyScope] = useState<'Mohan Financial' | 'Mohan Coaching' | 'All'>(initialCompany || 'All');
 
   const resetState = () => {
     setStep('select');
@@ -127,7 +128,7 @@ export function BulkAction({ associatedCompany }: BulkActionProps) {
     setIsFinding(true);
     try {
       const result = await findBulkMatches({
-        associatedCompany,
+        associatedCompany: companyScope === 'All' ? undefined : companyScope,
         jsonData,
         mapping,
       });
@@ -340,6 +341,21 @@ export function BulkAction({ associatedCompany }: BulkActionProps) {
       default:
         return (
           <div className="space-y-4">
+            {!initialCompany && (
+                 <div className="space-y-2">
+                    <Label>Select Company Scope</Label>
+                    <Select value={companyScope} onValueChange={(value: 'Mohan Financial' | 'Mohan Coaching' | 'All') => setCompanyScope(value)}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select a company scope"/>
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="All">All Companies</SelectItem>
+                            <SelectItem value="Mohan Financial">Mohan Financial</SelectItem>
+                            <SelectItem value="Mohan Coaching">Mohan Coaching</SelectItem>
+                        </SelectContent>
+                    </Select>
+                 </div>
+            )}
             <div>
               <Label htmlFor="file-upload">Upload CSV/Excel File</Label>
               <Input

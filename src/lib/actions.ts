@@ -233,7 +233,7 @@ const bulkActionMappedField = z.enum([
 type BulkActionMappedField = z.infer<typeof bulkActionMappedField>;
 
 const findMatchesSchema = z.object({
-  associatedCompany: z.enum(['Mohan Financial', 'Mohan Coaching']),
+  associatedCompany: z.enum(['Mohan Financial', 'Mohan Coaching']).optional(),
   jsonData: z.array(z.record(z.any())),
   mapping: z.record(bulkActionMappedField),
 });
@@ -287,8 +287,13 @@ export async function findBulkMatches(data: unknown) {
         if (fileIdentifiers.length === 0) {
             return { success: true, matches: [] };
         }
+        
+        let query: FirebaseFirestore.Query<FirebaseFirestore.DocumentData> = db.collection('connections');
+        if (associatedCompany) {
+            query = query.where('associatedCompany', '==', associatedCompany);
+        }
+        const connectionsSnapshot = await query.get();
 
-        const connectionsSnapshot = await db.collection('connections').where('associatedCompany', '==', associatedCompany).get();
         if (connectionsSnapshot.empty) {
             return { success: true, matches: [] };
         }
