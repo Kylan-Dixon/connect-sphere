@@ -15,7 +15,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { BulkAction } from '@/components/connections/bulk-action';
-import { Trash } from 'lucide-react';
+import { BulkUpload } from '@/components/connections/bulk-upload';
+import { Trash, Upload } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
 export default function CompanyConnectionsPage() {
@@ -106,11 +107,39 @@ export default function CompanyConnectionsPage() {
 
   return (
     <div className="space-y-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <Card>
             <CardHeader>
-                <CardTitle>Bulk Actions for {companyName}</CardTitle>
+                <CardTitle>Bulk Upload Connections</CardTitle>
                 <CardDescription>
-                    Perform bulk actions like deleting connections by uploading a file with names or emails. This action will only apply to connections associated with {companyName}.
+                    Add multiple new connections to {companyName} by uploading a file.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Sheet>
+                    <SheetTrigger asChild>
+                        <Button variant="outline">
+                            <Upload className="mr-2 h-4 w-4"/>
+                            Bulk Upload
+                        </Button>
+                    </SheetTrigger>
+                    <SheetContent className="w-full sm:max-w-3xl overflow-y-auto">
+                        <SheetHeader className="mb-4">
+                            <SheetTitle>Bulk Upload Connections</SheetTitle>
+                            <SheetDescription>
+                                Upload a file to add new connections. You'll be able to map columns before importing.
+                            </SheetDescription>
+                        </SheetHeader>
+                        <BulkUpload associatedCompany={companyName} />
+                    </SheetContent>
+                </Sheet>
+            </CardContent>
+        </Card>
+        <Card>
+            <CardHeader>
+                <CardTitle>Bulk Clean Connections</CardTitle>
+                <CardDescription>
+                    Remove connections from {companyName} by uploading a file of existing clients to match against.
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -118,15 +147,15 @@ export default function CompanyConnectionsPage() {
                     <SheetTrigger asChild>
                         <Button variant="destructive">
                             <Trash className="mr-2 h-4 w-4"/>
-                            Perform Bulk Action
+                            Bulk Delete
                         </Button>
                     </SheetTrigger>
                     <SheetContent className="w-full sm:max-w-3xl overflow-y-auto">
                         <SheetHeader className="mb-4">
-                            <SheetTitle>Bulk Connection Action</SheetTitle>
+                            <SheetTitle>Bulk Connection Delete</SheetTitle>
                             <SheetDescription>
-                                Upload a file to perform a bulk action on connections.
-                                You will be asked to map your file columns to match against existing data.
+                                Upload a file to find and delete existing connections.
+                                You will be asked to map your file columns and review all matches before deletion.
                             </SheetDescription>
                         </SheetHeader>
                         <BulkAction associatedCompany={companyName} />
@@ -134,6 +163,7 @@ export default function CompanyConnectionsPage() {
                 </Sheet>
             </CardContent>
         </Card>
+       </div>
       
       <Separator />
 
