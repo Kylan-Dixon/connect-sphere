@@ -147,6 +147,7 @@ export default function DashboardPage() {
             loading={loading}
             filters={filters}
             setFilters={setFilters}
+            allData={allConnections}
         />
       </div>
     </div>
