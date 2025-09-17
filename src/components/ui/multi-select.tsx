@@ -1,9 +1,11 @@
+
 'use client';
 
 import * as React from 'react';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { ScrollArea } from './scroll-area';
 
 interface MultiSelectProps {
   options: string[];
@@ -42,8 +44,8 @@ export function MultiSelect({
         onChange={(e) => setSearch(e.target.value)}
         className="w-full"
       />
-      <div className="h-96 w-full rounded-md border p-2 overflow-y-auto">
-        <div className="space-y-1">
+      <ScrollArea className="h-40 w-full rounded-md border">
+        <div className="p-2 space-y-1">
           {filteredOptions.length > 0 ? (
             filteredOptions.map((option) => (
               <div
@@ -67,7 +69,7 @@ export function MultiSelect({
             <p className="p-2 text-sm text-muted-foreground">No companies found.</p>
           )}
         </div>
-      </div>
+      </ScrollArea>
     </div>
   );
 }
