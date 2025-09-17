@@ -10,9 +10,6 @@ import { db } from '@/lib/firebase/client';
 import type { Connection } from '@/lib/types';
 import { ConnectionsTable } from '@/components/connections/connections-table';
 import { columns } from '@/components/connections/columns';
-import { BulkUpload } from '@/components/connections/bulk-upload';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import type { Filter } from '@/components/connections/filter-sheet';
 
 export default function CompanyConnectionsPage() {
@@ -106,21 +103,6 @@ export default function CompanyConnectionsPage() {
       <h2 className="text-3xl font-bold tracking-tight font-headline">
         {companyName} Connections
       </h2>
-        <div className="grid grid-cols-1 gap-8">
-            <Card>
-                <CardHeader>
-                <CardTitle>Bulk Upload</CardTitle>
-                <CardDescription>
-                    Upload an Excel or CSV file to add multiple connections for {companyName}.
-                </CardDescription>
-                </CardHeader>
-                <CardContent>
-                <BulkUpload associatedCompany={companyName} />
-                </CardContent>
-            </Card>
-        </div>
-
-      <Separator />
       
       <ConnectionsTable 
         columns={columns} 
@@ -128,6 +110,7 @@ export default function CompanyConnectionsPage() {
         loading={loading}
         filters={filters}
         setFilters={setFilters}
+        allData={allConnections}
       />
     </div>
   );
