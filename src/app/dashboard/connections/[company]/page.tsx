@@ -11,6 +11,12 @@ import type { Connection } from '@/lib/types';
 import { ConnectionsTable } from '@/components/connections/connections-table';
 import { columns } from '@/components/connections/columns';
 import type { Filter } from '@/components/connections/filter-sheet';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { BulkAction } from '@/components/connections/bulk-action';
+import { Trash } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 
 export default function CompanyConnectionsPage() {
   const { user } = useAuth();
@@ -100,6 +106,37 @@ export default function CompanyConnectionsPage() {
 
   return (
     <div className="space-y-8">
+        <Card>
+            <CardHeader>
+                <CardTitle>Bulk Actions for {companyName}</CardTitle>
+                <CardDescription>
+                    Perform bulk actions like deleting connections by uploading a file with names or emails. This action will only apply to connections associated with {companyName}.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Sheet>
+                    <SheetTrigger asChild>
+                        <Button variant="destructive">
+                            <Trash className="mr-2 h-4 w-4"/>
+                            Perform Bulk Action
+                        </Button>
+                    </SheetTrigger>
+                    <SheetContent className="w-full sm:max-w-3xl overflow-y-auto">
+                        <SheetHeader className="mb-4">
+                            <SheetTitle>Bulk Connection Action</SheetTitle>
+                            <SheetDescription>
+                                Upload a file to perform a bulk action on connections.
+                                You will be asked to map your file columns to match against existing data.
+                            </SheetDescription>
+                        </SheetHeader>
+                        <BulkAction associatedCompany={companyName} />
+                    </SheetContent>
+                </Sheet>
+            </CardContent>
+        </Card>
+      
+      <Separator />
+
       <h2 className="text-3xl font-bold tracking-tight font-headline">
         {companyName} Connections
       </h2>
