@@ -39,6 +39,18 @@ interface DataTableProps<TData, TValue> {
   allData?: TData[];
 }
 
+const DESKTOP_DEFAULT_VISIBLE_COLUMNS = [
+    'select',
+    'name',
+    'stage',
+    'linkedInUrl',
+    'isProspect',
+    'company',
+    'title',
+    'reminderDate',
+    'actions',
+];
+
 export function ConnectionsTable<TData extends Connection, TValue>({
   columns,
   data,
@@ -74,23 +86,23 @@ export function ConnectionsTable<TData extends Connection, TValue>({
   });
 
   React.useEffect(() => {
-    // Hide columns on mobile
+    const newVisibility: VisibilityState = {};
     if (isMobile) {
-      const newVisibility: VisibilityState = {};
+      // Mobile: hide almost everything
        table.getAllColumns().forEach(col => {
         if (col.id !== 'select' && col.id !== 'name' && col.id !== 'actions' && col.id !== 'reminderDate') {
           newVisibility[col.id] = false;
         }
        });
-       setColumnVisibility(newVisibility);
     } else {
-      // Default desktop visibility - show all
-      const newVisibility: VisibilityState = {};
+      // Desktop: show the main columns, hide the rest
       table.getAllColumns().forEach(col => {
-          newVisibility[col.id] = true;
+          if (!DESKTOP_DEFAULT_VISIBLE_COLUMNS.includes(col.id)) {
+            newVisibility[col.id] = false;
+          }
       });
-      setColumnVisibility(newVisibility);
     }
+    setColumnVisibility(newVisibility);
   }, [isMobile, table]);
 
   const TableSkeleton = () => (

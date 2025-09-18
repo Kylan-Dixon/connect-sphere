@@ -47,21 +47,6 @@ export const remindersColumns: ColumnDef<Connection>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: 'stage',
-    header: ({ column }) => {
-        return (
-            <Button
-                variant="ghost"
-                onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            >
-                Stage
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-        );
-    },
-    cell: ({ row }) => <StageBadge stage={row.getValue('stage')} />,
-  },
-  {
     accessorKey: 'name',
     header: ({ column }) => {
       return (
@@ -77,12 +62,35 @@ export const remindersColumns: ColumnDef<Connection>[] = [
     cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
   },
   {
-    accessorKey: 'hasResponded',
-    header: 'Responded',
-    cell: ({ row }) => {
-      const hasResponded = row.getValue('hasResponded');
-      return hasResponded ? <Badge variant="secondary">Yes</Badge> : null;
+    accessorKey: 'stage',
+    header: ({ column }) => {
+        return (
+            <Button
+                variant="ghost"
+                onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            >
+                Stage
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+        );
     },
+    cell: ({ row }) => <StageBadge stage={row.getValue('stage')} />,
+  },
+  {
+    accessorKey: 'linkedInUrl',
+    header: 'LinkedIn',
+    cell: ({ row }) => {
+        const url = row.getValue('linkedInUrl') as string | undefined;
+        if (!url) return null;
+        return (
+            <Button variant="ghost" size="icon" asChild>
+                <Link href={url} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-4 w-4" />
+                    <span className="sr-only">View LinkedIn</span>
+                </Link>
+            </Button>
+        )
+    }
   },
   {
     accessorKey: 'isProspect',
@@ -93,6 +101,24 @@ export const remindersColumns: ColumnDef<Connection>[] = [
     },
   },
   {
+    accessorKey: 'company',
+    header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            Company
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+  },
+  {
+    accessorKey: 'title',
+    header: 'Title',
+  },
+    {
     accessorKey: 'reminderDate',
     header: ({ column }) => {
         return (
@@ -129,22 +155,12 @@ export const remindersColumns: ColumnDef<Connection>[] = [
     header: 'Phone',
   },
   {
-    accessorKey: 'company',
-    header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            Company
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-  },
-  {
-    accessorKey: 'title',
-    header: 'Title',
+    accessorKey: 'hasResponded',
+    header: 'Responded',
+    cell: ({ row }) => {
+      const hasResponded = row.getValue('hasResponded');
+      return hasResponded ? <Badge variant="secondary">Yes</Badge> : null;
+    },
   },
   {
     accessorKey: 'tags',
