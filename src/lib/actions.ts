@@ -260,30 +260,22 @@ export async function findBulkMatches(data: unknown) {
         }
 
         const fileIdentifiers = jsonData.map((row, index) => {
-            const name = (row[reverseMapping.name!] || '').trim().toLowerCase();
             const firstName = (row[reverseMapping.firstName!] || '').trim().toLowerCase();
             const lastName = (row[reverseMapping.lastName!] || '').trim().toLowerCase();
-            const preferredName = (row[reverseMapping.preferredName!] || '').trim().toLowerCase();
             const email = (row[reverseMapping.email!] || '').trim().toLowerCase();
             const personalEmail = (row[reverseMapping.personalEmail!] || '').trim().toLowerCase();
             const homePhone = (row[reverseMapping.homePhone!] || '');
             const mobilePhone = (row[reverseMapping.mobilePhone!] || '');
-
-            let fullName = name;
-            if (!fullName && (firstName || lastName)) {
-                fullName = `${firstName} ${lastName}`.trim();
-            }
-
+            
             return {
                 id: `file-row-${index}`,
-                name: fullName,
-                preferredName,
-                allNames: [fullName, preferredName, firstName].filter(Boolean),
-                emails: [email, personalEmail].filter(Boolean).map(e => e.toLowerCase()),
+                firstName,
+                lastName,
+                emails: [email, personalEmail].filter(Boolean),
                 phones: [homePhone, mobilePhone].filter(Boolean).map(normalizePhone),
                 fileRow: row
             };
-        }).filter(id => id.allNames.length > 0 || id.emails.length > 0 || id.phones.length > 0);
+        }).filter(id => (id.firstName && id.lastName) || id.emails.length > 0 || id.phones.length > 0);
 
         if (fileIdentifiers.length === 0) {
             return { success: true, matches: [] };
@@ -299,26 +291,37 @@ export async function findBulkMatches(data: unknown) {
             return { success: true, matches: [] };
         }
 
-        const allConnections = connectionsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const allConnections = connectionsSnapshot.docs.map(doc => {
+            const data = doc.data();
+            const nameParts = (data.name || '').toLowerCase().split(' ');
+            const connFirstName = nameParts[0] || '';
+            const connLastName = nameParts.length > 1 ? nameParts.slice(-1)[0] : '';
+            return { 
+                id: doc.id,
+                ...data,
+                firstName: connFirstName,
+                lastName: connLastName,
+                email: (data.email || '').toLowerCase(),
+                phoneNumber: data.phoneNumber ? normalizePhone(data.phoneNumber) : null,
+            };
+        });
+        
         const potentialMatches: any[] = [];
 
         for (const identifier of fileIdentifiers) {
             const foundForIdentifier: any[] = [];
             for (const connection of allConnections) {
                 const matchReasons: string[] = [];
-                const connName = (connection.name || '').toLowerCase();
-                const connEmail = (connection.email || '').toLowerCase();
-                const connPhone = connection.phoneNumber ? normalizePhone(connection.phoneNumber) : null;
                 
-                if (identifier.allNames.some(name => connName.includes(name) && name !== '')) {
-                    matchReasons.push('Name Match');
-                }
-                if (identifier.emails.some(email => connEmail === email && email !== '')) {
-                    matchReasons.push('Email Match');
-                }
-                if (connPhone && identifier.phones.some(phone => connPhone.includes(phone) && phone !== '')) {
-                    matchReasons.push('Phone Match');
-                }
+                const isEmailMatch = identifier.emails.length > 0 && identifier.emails.includes(connection.email);
+                const isPhoneMatch = identifier.phones.length > 0 && connection.phoneNumber && identifier.phones.includes(connection.phoneNumber);
+                const isNameMatch = identifier.firstName && identifier.lastName &&
+                                    identifier.firstName === connection.firstName &&
+                                    identifier.lastName === connection.lastName;
+
+                if (isEmailMatch) matchReasons.push('Email Match');
+                if (isPhoneMatch) matchReasons.push('Phone Match');
+                if (isNameMatch) matchReasons.push('Name Match');
 
                 if (matchReasons.length > 0) {
                     foundForIdentifier.push({
