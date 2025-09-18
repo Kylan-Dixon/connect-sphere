@@ -15,4 +15,5 @@ export type Connection = {
   notes?: string;
   createdAt: Timestamp;
   userId?: string; // Changed to optional
+  stage?: 1 | 2 | 3 | 4;
 };

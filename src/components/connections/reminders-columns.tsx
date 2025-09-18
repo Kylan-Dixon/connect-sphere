@@ -20,6 +20,7 @@ import Link from 'next/link';
 import { EditConnectionSheet } from './edit-connection-sheet';
 import { DeleteConnectionDialog } from './delete-connection-dialog';
 import { Checkbox } from '../ui/checkbox';
+import { StageBadge } from './stage-badge';
 
 
 export const remindersColumns: ColumnDef<Connection>[] = [
@@ -44,6 +45,21 @@ export const remindersColumns: ColumnDef<Connection>[] = [
     ),
     enableSorting: false,
     enableHiding: false,
+  },
+  {
+    accessorKey: 'stage',
+    header: ({ column }) => {
+        return (
+            <Button
+                variant="ghost"
+                onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            >
+                Stage
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+        );
+    },
+    cell: ({ row }) => <StageBadge stage={row.getValue('stage')} />,
   },
   {
     accessorKey: 'name',

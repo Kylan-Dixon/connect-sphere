@@ -35,6 +35,7 @@ const connectionSchema = z.object({
   company: z.string().optional(),
   title: z.string().optional(),
   associatedCompany: z.enum(['Mohan Financial', 'Mohan Coaching']),
+  stage: z.coerce.number().min(1).max(4).optional(),
   tags: z.array(z.enum(['Connection', 'Referral'])).optional(),
   referrerName: z.string().optional(),
   reminderDate: z.coerce.date().optional(),
@@ -52,6 +53,9 @@ export async function addConnection(data: unknown) {
     const dataToSubmit: { [key: string]: any } = { ...connectionData, createdAt: Timestamp.now() };
     if (!dataToSubmit.tags?.includes('Referral')) {
       delete dataToSubmit.referrerName;
+    }
+     if (dataToSubmit.stage === undefined || dataToSubmit.stage === null) {
+      dataToSubmit.stage = null;
     }
     await db.collection('connections').add(dataToSubmit);
     revalidatePath('/dashboard');
@@ -72,6 +76,9 @@ export async function updateConnection(id: string, data: unknown) {
         const updateData: { [key: string]: any } = { ...connectionData };
         if (!updateData.tags?.includes('Referral')) {
             updateData.referrerName = FieldValue.delete();
+        }
+        if (updateData.stage === undefined || updateData.stage === null) {
+          updateData.stage = null;
         }
         updateData.updatedAt = Timestamp.now();
         if (updateData.reminderDate && updateData.reminderDate instanceof Date) {
@@ -192,35 +199,48 @@ export async function addBulkConnections(data: unknown) {
 
 // --- BULK UPDATES ---
 
-const bulkUpdateRemindersSchema = z.object({
+const bulkUpdateSchema = z.object({
   connectionIds: z.array(z.string().min(1)),
-  reminderDate: z.coerce.date(),
+  updateData: z.object({
+    reminderDate: z.coerce.date().optional(),
+    stage: z.coerce.number().min(1).max(4).optional(),
+  }).refine(data => Object.values(data).some(v => v !== undefined), {
+    message: "At least one update field must be provided."
+  }),
 });
 
-export async function bulkUpdateReminders(data: unknown) {
+export async function bulkUpdateConnections(data: unknown) {
   try {
     const { db } = await getFirebaseAdmin();
-    const validatedRequest = bulkUpdateRemindersSchema.safeParse(data);
+    const validatedRequest = bulkUpdateSchema.safeParse(data);
 
     if (!validatedRequest.success) {
       return { success: false, message: 'Invalid data for bulk update.' };
     }
     
-    const { connectionIds, reminderDate } = validatedRequest.data;
-    const reminderTimestamp = Timestamp.fromDate(reminderDate);
+    const { connectionIds, updateData } = validatedRequest.data;
+
+    const firestoreUpdateData: { [key: string]: any } = {};
+    if (updateData.reminderDate !== undefined) {
+        firestoreUpdateData.reminderDate = Timestamp.fromDate(updateData.reminderDate);
+    }
+    if (updateData.stage !== undefined) {
+        firestoreUpdateData.stage = updateData.stage;
+    }
+    
     const batch = db.batch();
 
     connectionIds.forEach(id => {
       const docRef = db.collection('connections').doc(id);
-      batch.update(docRef, { reminderDate: reminderTimestamp });
+      batch.update(docRef, firestoreUpdateData);
     });
 
     await batch.commit();
     revalidatePath('/dashboard', 'layout');
 
-    return { success: true, message: `Successfully updated reminders for ${connectionIds.length} connections.` };
+    return { success: true, message: `Successfully updated ${connectionIds.length} connections.` };
   } catch (error: any) {
-    return { success: false, message: `Failed to bulk update reminders: ${error.message}` };
+    return { success: false, message: `Failed to bulk update connections: ${error.message}` };
   }
 }
 
