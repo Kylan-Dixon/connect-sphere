@@ -259,7 +259,7 @@ export async function findBulkMatches(data: unknown) {
             }
         }
 
-        const fileIdentifiers = jsonData.map(row => {
+        const fileIdentifiers = jsonData.map((row, index) => {
             const name = (row[reverseMapping.name!] || '').trim().toLowerCase();
             const firstName = (row[reverseMapping.firstName!] || '').trim().toLowerCase();
             const lastName = (row[reverseMapping.lastName!] || '').trim().toLowerCase();
@@ -275,6 +275,7 @@ export async function findBulkMatches(data: unknown) {
             }
 
             return {
+                id: `file-row-${index}`,
                 name: fullName,
                 preferredName,
                 allNames: [fullName, preferredName, firstName].filter(Boolean),
@@ -302,6 +303,7 @@ export async function findBulkMatches(data: unknown) {
         const potentialMatches: any[] = [];
 
         for (const identifier of fileIdentifiers) {
+            const foundForIdentifier: any[] = [];
             for (const connection of allConnections) {
                 const matchReasons: string[] = [];
                 const connName = (connection.name || '').toLowerCase();
@@ -319,9 +321,8 @@ export async function findBulkMatches(data: unknown) {
                 }
 
                 if (matchReasons.length > 0) {
-                    potentialMatches.push({
+                    foundForIdentifier.push({
                         reasons: [...new Set(matchReasons)],
-                        fileRow: identifier.fileRow,
                         connection: {
                             id: connection.id,
                             name: connection.name,
@@ -330,8 +331,14 @@ export async function findBulkMatches(data: unknown) {
                             company: connection.company
                         }
                     });
-                    break; 
                 }
+            }
+             if (foundForIdentifier.length > 0) {
+                potentialMatches.push({
+                    id: identifier.id,
+                    fileRow: identifier.fileRow,
+                    options: foundForIdentifier,
+                })
             }
         }
 
@@ -363,9 +370,11 @@ export async function bulkConnectionsAction(data: unknown) {
 
         if (action === 'delete') {
             connectionIds.forEach(id => {
-                const docRef = db.collection('connections').doc(id);
-                batch.delete(docRef);
-                actionCount++;
+                if (id !== 'ignore') {
+                    const docRef = db.collection('connections').doc(id);
+                    batch.delete(docRef);
+                    actionCount++;
+                }
             });
         }
         

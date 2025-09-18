@@ -9,12 +9,13 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Upload, ArrowLeft, Table as TableIcon, Trash, Search } from 'lucide-react';
+import { Loader2, Upload, ArrowLeft, Trash, Search } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { ScrollArea } from '../ui/scroll-area';
 
 interface BulkActionProps {
   associatedCompany?: 'Mohan Financial' | 'Mohan Coaching' | 'All';
@@ -63,7 +64,7 @@ export function BulkAction({ associatedCompany: initialCompany }: BulkActionProp
   const [mapping, setMapping] = useState<{ [key: string]: MappedField | 'ignore' }>({});
   const [action, setAction] = useState<ActionType>('delete');
   const [matches, setMatches] = useState<any[]>([]);
-  const [selectedMatches, setSelectedMatches] = useState<string[]>([]);
+  const [selectedMatches, setSelectedMatches] = useState<{ [key: string]: string }>({});
   const [isFinding, setIsFinding] = useState(false);
   const [companyScope, setCompanyScope] = useState<'Mohan Financial' | 'Mohan Coaching' | 'All'>(initialCompany || 'All');
 
@@ -74,7 +75,7 @@ export function BulkAction({ associatedCompany: initialCompany }: BulkActionProp
     setJsonData([]);
     setMapping({});
     setMatches([]);
-    setSelectedMatches([]);
+    setSelectedMatches({});
     const fileInput = document.getElementById('file-upload') as HTMLInputElement;
     if (fileInput) fileInput.value = '';
   };
@@ -96,7 +97,7 @@ export function BulkAction({ associatedCompany: initialCompany }: BulkActionProp
       }
       
       const fileHeaders = (json[0] as string[]).map(h => String(h || '').trim());
-      const fileJsonData = XLSX.utils.sheet_to_json(worksheet, {defval: ''});
+      const fileJsonData = XLSX.utils.sheet_to_json(worksheet,{defval: ''});
       
       setHeaders(fileHeaders);
       setJsonData(fileJsonData);
@@ -139,7 +140,13 @@ export function BulkAction({ associatedCompany: initialCompany }: BulkActionProp
             setStep('map');
         } else {
             setMatches(result.matches);
-            setSelectedMatches(result.matches.map(m => m.connection.id)); // Default to all selected
+            const initialSelections: { [key: string]: string } = {};
+            result.matches.forEach(match => {
+                if (match.options.length > 0) {
+                    initialSelections[match.id] = match.options[0].connection.id;
+                }
+            });
+            setSelectedMatches(initialSelections);
             setStep('review');
         }
       } else {
@@ -156,12 +163,21 @@ export function BulkAction({ associatedCompany: initialCompany }: BulkActionProp
     }
   }
 
+  const handleSelectionChange = (matchGroupId: string, connectionId: string) => {
+    setSelectedMatches(prev => ({
+        ...prev,
+        [matchGroupId]: connectionId,
+    }));
+  };
+
   const handleAction = async () => {
     if (!user) {
       toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in.' });
       return;
     }
-    if(selectedMatches.length === 0) {
+    const connectionIdsToDelete = Object.values(selectedMatches).filter(id => id !== 'ignore');
+
+    if(connectionIdsToDelete.length === 0) {
         toast({ variant: 'destructive', title: 'No Selection', description: 'Please select at least one connection to perform the action on.' });
         return;
     }
@@ -170,7 +186,7 @@ export function BulkAction({ associatedCompany: initialCompany }: BulkActionProp
 
     try {
       const result = await bulkConnectionsAction({
-        connectionIds: selectedMatches,
+        connectionIds: connectionIdsToDelete,
         action,
       });
 
@@ -192,6 +208,10 @@ export function BulkAction({ associatedCompany: initialCompany }: BulkActionProp
       setStep('review'); // Revert to review step on failure
     }
   };
+  
+  const getSelectedCount = () => {
+    return Object.values(selectedMatches).filter(id => id !== 'ignore').length;
+  }
 
   const renderContent = () => {
     switch (step) {
@@ -199,7 +219,7 @@ export function BulkAction({ associatedCompany: initialCompany }: BulkActionProp
         return (
           <div className="flex flex-col items-center justify-center space-y-4 p-8">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
-            <p className="text-lg font-semibold">Performing {action} on {selectedMatches.length} connections...</p>
+            <p className="text-lg font-semibold">Performing {action} on {getSelectedCount()} connections...</p>
             <p className="text-muted-foreground">This may take a moment.</p>
           </div>
         );
@@ -209,62 +229,62 @@ export function BulkAction({ associatedCompany: initialCompany }: BulkActionProp
                 <Card>
                     <CardHeader>
                         <CardTitle>Review Matches</CardTitle>
-                        <CardDescription>We found {matches.length} potential matches. Select the connections you want to {action}.</CardDescription>
+                        <CardDescription>We found {matches.length} potential matches from your file. Please review and select the connection to {action} for each row. The best match is selected by default.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                         <div className="rounded-md border max-h-[50vh] overflow-y-auto">
+                         <ScrollArea className="rounded-md border h-[50vh]">
                             <Table>
-                                <TableHeader className="sticky top-0 bg-background">
+                                <TableHeader className="sticky top-0 bg-background z-10">
                                     <TableRow>
-                                        <TableHead className="w-[50px]">
-                                            <Checkbox 
-                                                checked={selectedMatches.length === matches.length}
-                                                onCheckedChange={(checked) => {
-                                                    setSelectedMatches(checked ? matches.map(m => m.connection.id) : []);
-                                                }}
-                                            />
-                                        </TableHead>
-                                        <TableHead>Matched On</TableHead>
                                         <TableHead>Your File Data</TableHead>
-                                        <TableHead>Existing Connection Data</TableHead>
+                                        <TableHead>Potential Matches in ConnectSphere</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {matches.map((match) => (
-                                        <TableRow key={match.connection.id}>
-                                            <TableCell>
-                                                 <Checkbox 
-                                                    checked={selectedMatches.includes(match.connection.id)}
-                                                    onCheckedChange={(checked) => {
-                                                        setSelectedMatches(prev => 
-                                                            checked ? [...prev, match.connection.id] : prev.filter(id => id !== match.connection.id)
-                                                        );
-                                                    }}
-                                                />
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="flex flex-col gap-1">
-                                                {match.reasons.map((reason: string) => (
-                                                    <Badge key={reason} variant="secondary">{reason}</Badge>
+                                    {matches.map((matchGroup) => (
+                                        <TableRow key={matchGroup.id}>
+                                            <TableCell className="text-sm align-top w-1/3">
+                                                <div className="space-y-1">
+                                                {Object.entries(matchGroup.fileRow).map(([key, value]) => (
+                                                   <div key={key} className="truncate"><span className="font-semibold">{key}:</span> {String(value)}</div>
                                                 ))}
                                                 </div>
                                             </TableCell>
                                             <TableCell className="text-sm">
-                                                {Object.entries(match.fileRow).map(([key, value]) => (
-                                                   <div key={key}><span className="font-semibold">{key}:</span> {String(value)}</div>
-                                                ))}
-                                            </TableCell>
-                                            <TableCell className="text-sm">
-                                                <div className="font-bold text-base">{match.connection.name}</div>
-                                                <div>{match.connection.email}</div>
-                                                <div>{match.connection.phoneNumber}</div>
-                                                <div>{match.connection.company}</div>
+                                                <RadioGroup 
+                                                    value={selectedMatches[matchGroup.id]} 
+                                                    onValueChange={(connectionId) => handleSelectionChange(matchGroup.id, connectionId)}
+                                                >
+                                                    {matchGroup.options.map((option: any) => (
+                                                        <div key={option.connection.id} className="flex items-start space-x-2 p-2 rounded-md hover:bg-accent">
+                                                            <RadioGroupItem value={option.connection.id} id={`${matchGroup.id}-${option.connection.id}`} />
+                                                            <Label htmlFor={`${matchGroup.id}-${option.connection.id}`} className="font-normal w-full">
+                                                                <div className="flex justify-between items-start">
+                                                                    <div>
+                                                                        <div className="font-bold">{option.connection.name}</div>
+                                                                        <div>{option.connection.email}</div>
+                                                                        <div>{option.connection.phoneNumber}</div>
+                                                                    </div>
+                                                                    <div className="flex flex-col gap-1 items-end">
+                                                                        {option.reasons.map((reason: string) => (
+                                                                            <Badge key={reason} variant="secondary">{reason}</Badge>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            </Label>
+                                                        </div>
+                                                    ))}
+                                                    <div className="flex items-center space-x-2 p-2 rounded-md hover:bg-accent">
+                                                        <RadioGroupItem value="ignore" id={`${matchGroup.id}-ignore`} />
+                                                        <Label htmlFor={`${matchGroup.id}-ignore`} className="font-normal text-muted-foreground">None of these are a match. Ignore this row.</Label>
+                                                    </div>
+                                                </RadioGroup>
                                             </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
                             </Table>
-                        </div>
+                        </ScrollArea>
                     </CardContent>
                 </Card>
                 <div className="flex justify-between items-center">
@@ -280,8 +300,8 @@ export function BulkAction({ associatedCompany: initialCompany }: BulkActionProp
                                 <SelectItem value="delete">Bulk Delete</SelectItem>
                             </SelectContent>
                         </Select>
-                        <Button onClick={handleAction} variant={action === 'delete' ? 'destructive' : 'default'}>
-                            <Trash className="mr-2 h-4 w-4"/> {action.charAt(0).toUpperCase() + action.slice(1)} {selectedMatches.length} Connections
+                        <Button onClick={handleAction} variant={action === 'delete' ? 'destructive' : 'default'} disabled={getSelectedCount() === 0}>
+                            <Trash className="mr-2 h-4 w-4"/> {action.charAt(0).toUpperCase() + action.slice(1)} {getSelectedCount()} Connections
                         </Button>
                     </div>
                 </div>
@@ -297,31 +317,33 @@ export function BulkAction({ associatedCompany: initialCompany }: BulkActionProp
                         Match the columns from your file to the fields in ConnectSphere to identify which connections to {action}.
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-60 overflow-y-auto p-1">
-                        {headers.filter(h => h).map((header) => (
-                            <div key={header} className="grid grid-cols-2 items-center gap-2">
-                                <Label htmlFor={`map-${header}`} className="font-semibold truncate" title={header}>
-                                {header}
-                                </Label>
-                                <Select
-                                value={mapping[header]}
-                                onValueChange={(value: MappedField | 'ignore') => handleMappingChange(header, value)}
-                                >
-                                <SelectTrigger id={`map-${header}`}>
-                                    <SelectValue placeholder="Select field" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {mappableFields.map(field => (
-                                    <SelectItem key={field.value} value={field.value}>
-                                        {field.label}
-                                    </SelectItem>
-                                    ))}
-                                </SelectContent>
-                                </Select>
-                            </div>
-                        ))}
-                    </div>
+                <CardContent>
+                    <ScrollArea className="h-60">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-1">
+                            {headers.filter(h => h).map((header) => (
+                                <div key={header} className="grid grid-cols-2 items-center gap-2">
+                                    <Label htmlFor={`map-${header}`} className="font-semibold truncate" title={header}>
+                                    {header}
+                                    </Label>
+                                    <Select
+                                    value={mapping[header]}
+                                    onValueChange={(value: MappedField | 'ignore') => handleMappingChange(header, value)}
+                                    >
+                                    <SelectTrigger id={`map-${header}`}>
+                                        <SelectValue placeholder="Select field" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {mappableFields.map(field => (
+                                        <SelectItem key={field.value} value={field.value}>
+                                            {field.label}
+                                        </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                    </Select>
+                                </div>
+                            ))}
+                        </div>
+                    </ScrollArea>
                 </CardContent>
             </Card>
             
