@@ -46,6 +46,8 @@ const formSchema = z.object({
     required_error: 'You need to select an associated company.',
   }),
   stage: z.coerce.number().min(1).max(4).optional(),
+  hasResponded: z.boolean().optional(),
+  isProspect: z.boolean().optional(),
   tags: z.array(z.enum(tagsList)).optional(),
   referrerName: z.string().optional(),
   reminderDate: z.date().optional(),
@@ -82,6 +84,8 @@ export function AddConnectionForm({ onSuccess }: AddConnectionFormProps) {
       tags: [],
       referrerName: '',
       notes: '',
+      hasResponded: false,
+      isProspect: false,
     },
   });
 
@@ -207,6 +211,46 @@ export function AddConnectionForm({ onSuccess }: AddConnectionFormProps) {
             </FormItem>
           )}
         />
+        <div className="grid grid-cols-2 gap-4">
+            <FormField
+            control={form.control}
+            name="hasResponded"
+            render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                    <FormLabel className="text-base">
+                    Responded
+                    </FormLabel>
+                </div>
+                <FormControl>
+                    <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    />
+                </FormControl>
+                </FormItem>
+            )}
+            />
+             <FormField
+            control={form.control}
+            name="isProspect"
+            render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                    <FormLabel className="text-base">
+                    Prospect
+                    </FormLabel>
+                </div>
+                <FormControl>
+                    <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    />
+                </FormControl>
+                </FormItem>
+            )}
+            />
+        </div>
         <FormField
           control={form.control}
           name="linkedInUrl"

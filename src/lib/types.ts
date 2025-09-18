@@ -1,3 +1,4 @@
+
 import { type Timestamp } from 'firebase/firestore';
 
 export type Connection = {
@@ -16,4 +17,6 @@ export type Connection = {
   createdAt: Timestamp;
   userId?: string; // Changed to optional
   stage?: 1 | 2 | 3 | 4;
+  hasResponded?: boolean;
+  isProspect?: boolean;
 };

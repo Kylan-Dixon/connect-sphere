@@ -77,6 +77,22 @@ export const remindersColumns: ColumnDef<Connection>[] = [
     cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
   },
   {
+    accessorKey: 'hasResponded',
+    header: 'Responded',
+    cell: ({ row }) => {
+      const hasResponded = row.getValue('hasResponded');
+      return hasResponded ? <Badge variant="secondary">Yes</Badge> : null;
+    },
+  },
+  {
+    accessorKey: 'isProspect',
+    header: 'Prospect',
+    cell: ({ row }) => {
+      const isProspect = row.getValue('isProspect');
+      return isProspect ? <Badge>Yes</Badge> : null;
+    },
+  },
+  {
     accessorKey: 'reminderDate',
     header: ({ column }) => {
         return (

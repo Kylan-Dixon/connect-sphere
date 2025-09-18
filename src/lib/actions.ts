@@ -40,6 +40,8 @@ const connectionSchema = z.object({
   referrerName: z.string().optional(),
   reminderDate: z.coerce.date().optional(),
   notes: z.string().optional(),
+  hasResponded: z.boolean().optional(),
+  isProspect: z.boolean().optional(),
 });
 
 export async function addConnection(data: unknown) {
@@ -333,11 +335,11 @@ export async function findBulkMatches(data: unknown) {
             for (const connection of allConnections) {
                 const matchReasons: string[] = [];
                 
-                const isEmailMatch = identifier.emails.length > 0 && identifier.emails.includes(connection.email);
+                const isEmailMatch = identifier.emails.length > 0 && connection.email && identifier.emails.includes(connection.email);
                 const isPhoneMatch = identifier.phones.length > 0 && connection.phoneNumber && identifier.phones.includes(connection.phoneNumber);
-                const isNameMatch = identifier.firstName && identifier.lastName &&
+                const isNameMatch = !!(identifier.firstName && identifier.lastName &&
                                     identifier.firstName === connection.firstName &&
-                                    identifier.lastName === connection.lastName;
+                                    identifier.lastName === connection.lastName);
 
                 if (isEmailMatch) matchReasons.push('Email Match');
                 if (isPhoneMatch) matchReasons.push('Phone Match');
