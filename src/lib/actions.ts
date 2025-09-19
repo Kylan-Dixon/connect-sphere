@@ -440,8 +440,11 @@ export async function bulkConnectionsAction(data: unknown) {
         return { success: true, message: `${actionCount} connections have been successfully ${action}d.` };
 
     } catch (error: any) {
-        console.error(`Error in bulkConnectionsAction (${action}):`, error);
+        console.error(`Error in bulkConnectionsAction:`, error);
         return { success: false, message: `Failed to perform bulk action: ${error.message}` };
     }
 }
 
+
+
+    
