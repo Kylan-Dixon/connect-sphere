@@ -27,7 +27,7 @@ export async function isUserAuthorized(email: string) {
 
 // --- CONNECTION ACTIONS ---
 
-const connectionSchema = z.object({
+const addConnectionSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.string().email().optional().or(z.literal('')),
   phoneNumber: z.string().optional(),
@@ -35,7 +35,25 @@ const connectionSchema = z.object({
   company: z.string().optional(),
   title: z.string().optional(),
   associatedCompany: z.enum(['Mohan Financial', 'Mohan Coaching']),
-  stage: z.union([z.literal('null'), z.coerce.number().min(1).max(4).nullable()]).optional(),
+  stage: z.union([z.literal('null'), z.coerce.number().min(1).max(4)]).nullable().optional(),
+  tags: z.array(z.enum(['Connection', 'Referral'])).optional(),
+  referrerName: z.string().optional(),
+  reminderDate: z.coerce.date().optional(),
+  notes: z.string().optional(),
+  hasResponded: z.boolean().optional(),
+  isProspect: z.boolean().optional(),
+});
+
+
+const updateConnectionSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  email: z.string().email().optional().or(z.literal('')),
+  phoneNumber: z.string().optional(),
+  linkedInUrl: z.string().url('Invalid LinkedIn URL').optional().or(z.literal('')),
+  company: z.string().optional(),
+  title: z.string().optional(),
+  associatedCompany: z.enum(['Mohan Financial', 'Mohan Coaching']),
+  stage: z.union([z.literal('null'), z.coerce.number().min(1).max(4)]).nullable().optional(),
   tags: z.array(z.enum(['Connection', 'Referral'])).optional(),
   referrerName: z.string().optional(),
   reminderDate: z.coerce.date().optional(),
@@ -47,7 +65,7 @@ const connectionSchema = z.object({
 export async function addConnection(data: unknown) {
   try {
     const { db } = await getFirebaseAdmin();
-    const validatedFields = connectionSchema.safeParse(data);
+    const validatedFields = addConnectionSchema.safeParse(data);
     if (!validatedFields.success) {
       return { success: false, message: 'Invalid data', errors: validatedFields.error.flatten().fieldErrors };
     }
@@ -73,7 +91,7 @@ export async function addConnection(data: unknown) {
 export async function updateConnection(id: string, data: unknown) {
     try {
         const { db } = await getFirebaseAdmin();
-        const validatedFields = connectionSchema.safeParse(data);
+        const validatedFields = updateConnectionSchema.safeParse(data);
         if (!validatedFields.success) {
             return { success: false, message: "Invalid data provided.", errors: validatedFields.error.flatten().fieldErrors };
         }
@@ -424,5 +442,3 @@ export async function bulkConnectionsAction(data: unknown) {
         return { success: false, message: `Failed to perform bulk action: ${error.message}` };
     }
 }
-
-    
