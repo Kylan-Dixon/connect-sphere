@@ -85,24 +85,23 @@ export function ConnectionsTable<TData extends Connection, TValue>({
     }
   });
 
-  React.useEffect(() => {
-    const newVisibility: VisibilityState = {};
+   React.useEffect(() => {
     if (isMobile) {
-      // Mobile: hide almost everything
-       table.getAllColumns().forEach(col => {
-        if (col.id !== 'select' && col.id !== 'name' && col.id !== 'actions' && col.id !== 'reminderDate') {
-          newVisibility[col.id] = false;
-        }
-       });
-    } else {
-      // Desktop: show the main columns, hide the rest
-      table.getAllColumns().forEach(col => {
-          if (!DESKTOP_DEFAULT_VISIBLE_COLUMNS.includes(col.id)) {
-            newVisibility[col.id] = false;
-          }
+      table.setColumnVisibility({
+        select: true,
+        name: true,
+        reminderDate: true,
+        actions: true,
       });
+    } else {
+      const desktopVisibility: VisibilityState = {};
+      columns.forEach((column) => {
+        if (column.id) {
+            desktopVisibility[column.id] = DESKTOP_DEFAULT_VISIBLE_COLUMNS.includes(column.id);
+        }
+      });
+      table.setColumnVisibility(desktopVisibility);
     }
-    table.setColumnVisibility(newVisibility);
   }, [isMobile]);
 
   const TableSkeleton = () => (
