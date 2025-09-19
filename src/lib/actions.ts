@@ -6,6 +6,7 @@ import { getFirebaseAdmin } from '@/lib/firebase/server';
 import { Timestamp, FieldValue } from 'firebase-admin/firestore';
 import { revalidatePath } from 'next/cache';
 import { Connection } from './types';
+import { type } from 'os';
 
 
 // --- AUTH ACTIONS ---
@@ -73,7 +74,7 @@ export async function addConnection(data: unknown) {
     const { stage, ...connectionData } = validatedFields.data;
     const dataToSubmit: { [key: string]: any } = { 
         ...connectionData, 
-        stage: stage === 'null' || stage === undefined ? null : stage,
+        stage: stage === 'null' || stage === undefined || stage === null ? null : stage,
         createdAt: Timestamp.now() 
     };
 
@@ -100,7 +101,7 @@ export async function updateConnection(id: string, data: unknown) {
 
         const updateData: { [key: string]: any } = { 
             ...connectionData,
-            stage: stage === 'null' || stage === undefined ? null : stage,
+            stage: stage === 'null' || stage === undefined || stage === null ? null : stage,
         };
 
         if (!updateData.tags?.includes('Referral')) {
@@ -343,9 +344,9 @@ export async function findBulkMatches(data: unknown) {
             const nameParts = (data.name || '').toLowerCase().split(' ');
             const connFirstName = nameParts[0] || '';
             const connLastName = nameParts.length > 1 ? nameParts.slice(-1)[0] : '';
-            return { 
-                id: doc.id,
+            return {
                 ...data,
+                id: doc.id,
                 firstName: connFirstName,
                 lastName: connLastName,
                 email: (data.email || '').toLowerCase(),
@@ -443,3 +444,4 @@ export async function bulkConnectionsAction(data: unknown) {
         return { success: false, message: `Failed to perform bulk action: ${error.message}` };
     }
 }
+
