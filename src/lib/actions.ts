@@ -35,7 +35,7 @@ const connectionSchema = z.object({
   company: z.string().optional(),
   title: z.string().optional(),
   associatedCompany: z.enum(['Mohan Financial', 'Mohan Coaching']),
-  stage: z.coerce.number().min(1).max(4).optional(),
+  stage: z.coerce.number().min(1).max(4).optional().nullable(),
   tags: z.array(z.enum(['Connection', 'Referral'])).optional(),
   referrerName: z.string().optional(),
   reminderDate: z.coerce.date().optional(),

@@ -193,14 +193,17 @@ export function AddConnectionForm({ onSuccess }: AddConnectionFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Stage</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value?.toString()}>
+              <Select
+                onValueChange={(value) => field.onChange(value === 'null' ? null : Number(value))}
+                defaultValue={field.value?.toString()}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a stage" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="">-</SelectItem>
+                  <SelectItem value="null">-</SelectItem>
                   <SelectItem value="1">Stage 1</SelectItem>
                   <SelectItem value="2">Stage 2</SelectItem>
                   <SelectItem value="3">Stage 3</SelectItem>
