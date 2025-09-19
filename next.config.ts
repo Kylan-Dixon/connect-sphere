@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // This is the correct way to expose build-time environment variables to your client-side code.
+  env: {
+    NEXT_PUBLIC_FIREBASE_WEBAPP_CONFIG: process.env.FIREBASE_WEBAPP_CONFIG,
+  },
   async headers() {
     return [
       {
