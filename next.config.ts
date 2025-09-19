@@ -1,26 +1,17 @@
-import type {NextConfig} from 'next';
-
-const nextConfig: NextConfig = {
-  /* config options here */
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  images: {
-    remotePatterns: [
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  async headers() {
+    return [
       {
-        protocol: 'https',
-        hostname: 'placehold.co',
-        port: '',
-        pathname: '/**',
+        // This rule specifically targets the manifest.json file.
+        source: '/manifest.json',
+        headers: [
+          // This allows the file to be requested from any origin.
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+        ],
       },
-    ],
+    ];
   },
-  env: {
-    NEXT_PUBLIC_FIREBASE_WEBAPP_CONFIG: process.env.FIREBASE_WEBAPP_CONFIG,
-  }
 };
 
 export default nextConfig;
