@@ -20,6 +20,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '../ui/skeleton';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from '../theme-toggle';
 
 export function UserNav({ isOpen }: { isOpen?: boolean }) {
   const { user, loading } = useAuth();
@@ -73,6 +74,10 @@ export function UserNav({ isOpen }: { isOpen?: boolean }) {
               </p>
             </div>
           </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuGroup>
+            <ThemeToggle />
+          </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
             <LogOut className="mr-2 h-4 w-4" />
