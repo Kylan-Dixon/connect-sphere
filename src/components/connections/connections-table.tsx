@@ -103,7 +103,7 @@ export function ConnectionsTable<TData extends Connection, TValue>({
       });
     }
     setColumnVisibility(newVisibility);
-  }, [isMobile, table]);
+  }, [isMobile]);
 
   const TableSkeleton = () => (
     <div className="space-y-2">
