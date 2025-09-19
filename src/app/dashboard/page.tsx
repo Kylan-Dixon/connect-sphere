@@ -3,16 +3,20 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
+import { Trash } from 'lucide-react';
 
 import { useAuth } from '@/hooks/use-auth';
 import { db } from '@/lib/firebase/client';
 import type { Connection } from '@/lib/types';
 import { ConnectionsTable } from '@/components/connections/connections-table';
 import { columns } from '@/components/connections/columns';
-import { AddConnectionForm } from '@/components/connections/add-connection-form';
+import { AddConnectionSheet } from '@/components/connections/add-connection-sheet';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import type { Filter } from '@/components/connections/filter-sheet';
+import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { BulkAction } from '@/components/connections/bulk-action';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -98,7 +102,7 @@ export default function DashboardPage() {
             <CardDescription>Enter the details of your new connection here.</CardDescription>
           </CardHeader>
           <CardContent>
-            <AddConnectionForm />
+            <AddConnectionSheet />
           </CardContent>
         </Card>
       </div>

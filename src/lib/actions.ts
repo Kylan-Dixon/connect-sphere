@@ -35,7 +35,7 @@ const connectionSchema = z.object({
   company: z.string().optional(),
   title: z.string().optional(),
   associatedCompany: z.enum(['Mohan Financial', 'Mohan Coaching']),
-  stage: z.coerce.number().min(1).max(4).optional().nullable(),
+  stage: z.union([z.literal('null'), z.coerce.number().min(1).max(4)]).optional(),
   tags: z.array(z.enum(['Connection', 'Referral'])).optional(),
   referrerName: z.string().optional(),
   reminderDate: z.coerce.date().optional(),
@@ -51,14 +51,17 @@ export async function addConnection(data: unknown) {
     if (!validatedFields.success) {
       return { success: false, message: 'Invalid data', errors: validatedFields.error.flatten().fieldErrors };
     }
-    const { ...connectionData } = validatedFields.data;
-    const dataToSubmit: { [key: string]: any } = { ...connectionData, createdAt: Timestamp.now() };
+    const { stage, ...connectionData } = validatedFields.data;
+    const dataToSubmit: { [key: string]: any } = { 
+        ...connectionData, 
+        stage: stage === 'null' || stage === undefined ? null : stage,
+        createdAt: Timestamp.now() 
+    };
+
     if (!dataToSubmit.tags?.includes('Referral')) {
       delete dataToSubmit.referrerName;
     }
-     if (dataToSubmit.stage === undefined || dataToSubmit.stage === null) {
-      dataToSubmit.stage = null;
-    }
+    
     await db.collection('connections').add(dataToSubmit);
     revalidatePath('/dashboard');
     return { success: true, message: 'Connection added successfully.' };
@@ -74,20 +77,25 @@ export async function updateConnection(id: string, data: unknown) {
         if (!validatedFields.success) {
             return { success: false, message: "Invalid data provided.", errors: validatedFields.error.flatten().fieldErrors };
         }
-        const connectionData = validatedFields.data;
-        const updateData: { [key: string]: any } = { ...connectionData };
+        const { stage, ...connectionData } = validatedFields.data;
+
+        const updateData: { [key: string]: any } = { 
+            ...connectionData,
+            stage: stage === 'null' || stage === undefined ? null : stage,
+        };
+
         if (!updateData.tags?.includes('Referral')) {
             updateData.referrerName = FieldValue.delete();
         }
-        if (updateData.stage === undefined || updateData.stage === null) {
-          updateData.stage = null;
-        }
+        
         updateData.updatedAt = Timestamp.now();
+
         if (updateData.reminderDate && updateData.reminderDate instanceof Date) {
             updateData.reminderDate = Timestamp.fromDate(updateData.reminderDate);
         } else if (updateData.reminderDate === undefined || updateData.reminderDate === null) {
             updateData.reminderDate = null;
         }
+
         await db.collection('connections').doc(id).update(updateData);
         revalidatePath('/dashboard');
         revalidatePath(`/dashboard/connections/${connectionData.associatedCompany.toLowerCase().replace(/\s/g, '-')}`);
