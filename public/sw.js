@@ -1,75 +1,51 @@
 
-const CACHE_NAME = 'connectsphere-cache-v1';
+const CACHE_NAME = 'connectsphere-cache-v2';
 const urlsToCache = [
   '/',
   '/dashboard',
-  '/dashboard/reminders',
-  '/dashboard/connections/mohan-financial',
-  '/dashboard/connections/mohan-coaching',
-  '/signup',
   '/manifest.json',
-  '/favicon.ico',
-  '/icon-192x192.png',
-  '/icon-512x512.png',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('Opened cache');
+        console.log('Service Worker: Caching files');
         return cache.addAll(urlsToCache);
+      })
+      .catch(err => {
+        console.error('Service Worker: Caching failed', err);
       })
   );
 });
 
 self.addEventListener('fetch', (event) => {
-  // Ignore non-GET requests
+  // Fix: Immediately return for non-GET requests to prevent caching errors.
   if (event.request.method !== 'GET') {
     return;
   }
 
-  // For navigation requests, use network-first strategy
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request)
-        .then(response => {
-          return caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, response.clone());
-            return response;
-          });
-        })
-        .catch(() => {
-          return caches.match(event.request)
-            .then(response => response || caches.match('/'));
-        })
-    );
-    return;
-  }
-
-  // For other requests (CSS, JS, images), use cache-first strategy
+  // Strategy: Cache then Network
   event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        if (response) {
-          return response;
-        }
-
-        return fetch(event.request).then(
-          (response) => {
-            if(!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
-
-            const responseToCache = response.clone();
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                cache.put(event.request, responseToCache);
-              });
-            return response;
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.match(event.request).then((response) => {
+        const fetchPromise = fetch(event.request).then((networkResponse) => {
+          // If the request is successful, update the cache
+          if (networkResponse.status === 200) {
+            cache.put(event.request, networkResponse.clone());
           }
-        );
-      })
+          return networkResponse;
+        }).catch(err => {
+            console.error('Service Worker: Fetch failed', err);
+            throw err;
+        });
+
+        // Return the cached response if it exists, otherwise wait for the network
+        return response || fetchPromise;
+      });
+    })
   );
 });
 
@@ -80,6 +56,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheWhitelist.indexOf(cacheName) === -1) {
+            console.log('Service Worker: Deleting old cache', cacheName);
             return caches.delete(cacheName);
           }
         })

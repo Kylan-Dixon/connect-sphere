@@ -39,17 +39,17 @@ interface DataTableProps<TData, TValue> {
   allData?: TData[];
 }
 
-const DESKTOP_DEFAULT_VISIBLE_COLUMNS = [
-    'select',
-    'name',
-    'stage',
-    'linkedInUrl',
-    'isProspect',
-    'company',
-    'title',
-    'reminderDate',
-    'actions',
-];
+const DESKTOP_DEFAULT_VISIBLE_COLUMNS: { [key: string]: boolean } = {
+    select: true,
+    name: true,
+    stage: true,
+    linkedInUrl: true,
+    isProspect: true,
+    company: true,
+    title: true,
+    reminderDate: true,
+    actions: true,
+};
 
 export function ConnectionsTable<TData extends Connection, TValue>({
   columns,
@@ -86,23 +86,19 @@ export function ConnectionsTable<TData extends Connection, TValue>({
   });
 
    React.useEffect(() => {
-    if (isMobile) {
-      table.setColumnVisibility({
+    const mobileVisibility: VisibilityState = {
         select: true,
         name: true,
         reminderDate: true,
         actions: true,
-      });
+    };
+    
+    if (isMobile) {
+      table.setColumnVisibility(mobileVisibility);
     } else {
-      const desktopVisibility: VisibilityState = {};
-      columns.forEach((column) => {
-        if (column.id) {
-            desktopVisibility[column.id] = DESKTOP_DEFAULT_VISIBLE_COLUMNS.includes(column.id);
-        }
-      });
-      table.setColumnVisibility(desktopVisibility);
+      table.setColumnVisibility(DESKTOP_DEFAULT_VISIBLE_COLUMNS);
     }
-  }, [isMobile]);
+  }, [isMobile, table]);
 
   const TableSkeleton = () => (
     <div className="space-y-2">
@@ -187,7 +183,7 @@ export function ConnectionsTable<TData extends Connection, TValue>({
                   data-state={row.getIsSelected() && 'selected'}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} className="p-2">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
