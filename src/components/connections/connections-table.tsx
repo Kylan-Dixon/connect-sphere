@@ -102,7 +102,7 @@ export function ConnectionsTable<TData extends Connection, TValue>({
           }
       });
     }
-    setColumnVisibility(newVisibility);
+    table.setColumnVisibility(newVisibility);
   }, [isMobile]);
 
   const TableSkeleton = () => (

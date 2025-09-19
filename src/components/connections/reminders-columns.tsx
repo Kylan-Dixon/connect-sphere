@@ -61,6 +61,24 @@ export const remindersColumns: ColumnDef<Connection>[] = [
     },
     cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
   },
+    {
+    accessorKey: 'reminderDate',
+    header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            Reminder
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+    cell: ({ row }) => {
+      const date = row.original.reminderDate?.toDate();
+      return date ? date.toLocaleDateString() : 'N/A';
+    },
+  },
   {
     accessorKey: 'stage',
     header: ({ column }) => {
@@ -117,24 +135,6 @@ export const remindersColumns: ColumnDef<Connection>[] = [
   {
     accessorKey: 'title',
     header: 'Title',
-  },
-    {
-    accessorKey: 'reminderDate',
-    header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            Reminder
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-    cell: ({ row }) => {
-      const date = row.original.reminderDate?.toDate();
-      return date ? date.toLocaleDateString() : 'N/A';
-    },
   },
   {
     accessorKey: 'email',
