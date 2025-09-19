@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { getFirebaseAdmin } from '@/lib/firebase/server';
 import { Timestamp, FieldValue } from 'firebase-admin/firestore';
 import { revalidatePath } from 'next/cache';
+import { Connection } from './types';
 
 
 // --- AUTH ACTIONS ---
@@ -338,7 +339,7 @@ export async function findBulkMatches(data: unknown) {
         }
 
         const allConnections = connectionsSnapshot.docs.map(doc => {
-            const data = doc.data();
+            const data = doc.data() as Connection;
             const nameParts = (data.name || '').toLowerCase().split(' ');
             const connFirstName = nameParts[0] || '';
             const connLastName = nameParts.length > 1 ? nameParts.slice(-1)[0] : '';
@@ -374,7 +375,7 @@ export async function findBulkMatches(data: unknown) {
                         reasons: [...new Set(matchReasons)],
                         connection: {
                             id: connection.id,
-                            name: connection.name,
+                            name: connection.name || '', // Ensure name is a string
                             email: connection.email,
                             phoneNumber: connection.phoneNumber,
                             company: connection.company
