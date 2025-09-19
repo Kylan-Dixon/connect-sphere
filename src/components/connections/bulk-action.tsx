@@ -190,6 +190,10 @@ export function BulkAction({ associatedCompany: initialCompany }: BulkActionProp
         action,
       });
 
+      if (!result) {
+        throw new Error('An unexpected error occurred during the action.');
+      }
+      
       if (result.success) {
         toast({
           title: 'Success!',

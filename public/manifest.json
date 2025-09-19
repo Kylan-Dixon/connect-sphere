@@ -1,11 +1,7 @@
 {
   "name": "ConnectSphere",
-  "short_name": "Connect",
+  "short_name": "ConnectSphere",
   "description": "Manage your professional connections efficiently.",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
   "icons": [
     {
       "src": "/icon-192x192.png",
@@ -17,5 +13,9 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ]
+  ],
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000"
 }
