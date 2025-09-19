@@ -35,7 +35,7 @@ const connectionSchema = z.object({
   company: z.string().optional(),
   title: z.string().optional(),
   associatedCompany: z.enum(['Mohan Financial', 'Mohan Coaching']),
-  stage: z.union([z.literal('null'), z.coerce.number().min(1).max(4)]).optional(),
+  stage: z.union([z.literal('null'), z.coerce.number().min(1).max(4).nullable()]).optional(),
   tags: z.array(z.enum(['Connection', 'Referral'])).optional(),
   referrerName: z.string().optional(),
   reminderDate: z.coerce.date().optional(),
@@ -63,7 +63,7 @@ export async function addConnection(data: unknown) {
     }
     
     await db.collection('connections').add(dataToSubmit);
-    revalidatePath('/dashboard');
+    revalidatePath('/dashboard', 'layout');
     return { success: true, message: 'Connection added successfully.' };
   } catch (error: any) {
      return { success: false, message: `Failed to add connection: ${error.message}` };
@@ -97,9 +97,7 @@ export async function updateConnection(id: string, data: unknown) {
         }
 
         await db.collection('connections').doc(id).update(updateData);
-        revalidatePath('/dashboard');
-        revalidatePath(`/dashboard/connections/${connectionData.associatedCompany.toLowerCase().replace(/\s/g, '-')}`);
-        revalidatePath('/dashboard/reminders');
+        revalidatePath('/dashboard', 'layout');
         return { success: true, message: 'Connection updated successfully.' };
     } catch (error: any) {
         console.error("Update Connection Error:", error);
@@ -426,3 +424,5 @@ export async function bulkConnectionsAction(data: unknown) {
         return { success: false, message: `Failed to perform bulk action: ${error.message}` };
     }
 }
+
+    
