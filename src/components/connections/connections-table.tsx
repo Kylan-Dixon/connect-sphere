@@ -49,6 +49,11 @@ const DESKTOP_DEFAULT_VISIBLE_COLUMNS: { [key: string]: boolean } = {
     title: true,
     reminderDate: true,
     actions: true,
+    hasResponded: false,
+    email: false,
+    phoneNumber: false,
+    tags: false,
+    referrerName: false,
 };
 
 export function ConnectionsTable<TData extends Connection, TValue>({
@@ -67,6 +72,7 @@ export function ConnectionsTable<TData extends Connection, TValue>({
   const table = useReactTable({
     data,
     columns,
+    autoResetPageIndex: false,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
@@ -98,7 +104,7 @@ export function ConnectionsTable<TData extends Connection, TValue>({
     } else {
       table.setColumnVisibility(DESKTOP_DEFAULT_VISIBLE_COLUMNS);
     }
-  }, [isMobile, table]);
+  }, [isMobile]);
 
   const TableSkeleton = () => (
     <div className="space-y-2">
