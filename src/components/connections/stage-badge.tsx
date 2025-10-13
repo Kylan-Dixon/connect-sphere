@@ -41,5 +41,3 @@ export function StageBadge({ stage }: StageBadgeProps) {
     </Badge>
   );
 }
-
-    
