@@ -37,7 +37,7 @@ const addConnectionSchema = z.object({
   company: z.string().optional(),
   title: z.string().optional(),
   associatedCompany: z.enum(['Mohan Financial', 'Mohan Coaching']),
-  stage: z.union([z.literal('null'), z.coerce.number().min(1).max(4)]).nullable().optional(),
+  stage: z.union([z.literal('null'), z.coerce.number().min(0).max(4)]).nullable().optional(),
   tags: z.array(z.enum(['Connection', 'Referral'])).optional(),
   referrerName: z.string().optional(),
   reminderDate: z.coerce.date().optional(),
@@ -55,7 +55,7 @@ const updateConnectionSchema = z.object({
   company: z.string().optional(),
   title: z.string().optional(),
   associatedCompany: z.enum(['Mohan Financial', 'Mohan Coaching']),
-  stage: z.union([z.literal('null'), z.coerce.number().min(1).max(4)]).nullable().optional(),
+  stage: z.union([z.literal('null'), z.coerce.number().min(0).max(4)]).nullable().optional(),
   tags: z.array(z.enum(['Connection', 'Referral'])).optional(),
   referrerName: z.string().optional(),
   reminderDate: z.coerce.date().optional(),
@@ -231,7 +231,7 @@ const bulkUpdateSchema = z.object({
   connectionIds: z.array(z.string().min(1)),
   updateData: z.object({
     reminderDate: z.coerce.date().optional(),
-    stage: z.coerce.number().min(1).max(4).optional(),
+    stage: z.coerce.number().min(0).max(4).optional(),
   }).refine(data => Object.values(data).some(v => v !== undefined), {
     message: "At least one update field must be provided."
   }),
@@ -345,8 +345,8 @@ export async function findBulkMatches(data: unknown) {
             const connFirstName = nameParts[0] || '';
             const connLastName = nameParts.length > 1 ? nameParts.slice(-1)[0] : '';
             return {
-                ...data,
                 id: doc.id,
+                ...data,
                 firstName: connFirstName,
                 lastName: connLastName,
                 email: (data.email || '').toLowerCase(),
@@ -446,5 +446,7 @@ export async function bulkConnectionsAction(data: unknown) {
 }
 
 
+
+    
 
     

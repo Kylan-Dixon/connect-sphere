@@ -54,7 +54,7 @@ const formSchema = z.object({
   associatedCompany: z.enum(['Mohan Financial', 'Mohan Coaching'], {
     required_error: 'You need to select an associated company.',
   }),
-  stage: z.coerce.number().min(1).max(4).optional(),
+  stage: z.coerce.number().min(0).max(4).optional(),
   hasResponded: z.boolean().optional(),
   isProspect: z.boolean().optional(),
   tags: z.array(z.enum(tagsList)).optional(),
@@ -232,6 +232,7 @@ export function EditConnectionSheet({ connection }: EditConnectionSheetProps) {
                             </FormControl>
                             <SelectContent>
                                 <SelectItem value="null">-</SelectItem>
+                                <SelectItem value="0">Initial</SelectItem>
                                 <SelectItem value="1">Stage 1</SelectItem>
                                 <SelectItem value="2">Stage 2</SelectItem>
                                 <SelectItem value="3">Stage 3</SelectItem>
@@ -423,3 +424,5 @@ export function EditConnectionSheet({ connection }: EditConnectionSheetProps) {
     </>
   );
 }
+
+    

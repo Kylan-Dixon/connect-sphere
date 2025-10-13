@@ -111,6 +111,7 @@ export function BulkUpdateSheet({ selectedConnectionIds, onSuccess }: BulkUpdate
                         <SelectValue placeholder="Select a stage" />
                     </SelectTrigger>
                     <SelectContent>
+                        <SelectItem value="0">Initial</SelectItem>
                         <SelectItem value="1">Stage 1</SelectItem>
                         <SelectItem value="2">Stage 2</SelectItem>
                         <SelectItem value="3">Stage 3</SelectItem>
@@ -131,3 +132,5 @@ export function BulkUpdateSheet({ selectedConnectionIds, onSuccess }: BulkUpdate
     </Sheet>
   );
 }
+
+    
