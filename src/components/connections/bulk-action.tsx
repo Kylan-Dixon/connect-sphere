@@ -240,15 +240,15 @@ export function BulkAction({ associatedCompany: initialCompany }: BulkActionProp
                             <Table>
                                 <TableHeader className="sticky top-0 bg-background z-10">
                                     <TableRow>
-                                        <TableHead>Your File Data</TableHead>
+                                        <TableHead className="w-1/3">Your File Data</TableHead>
                                         <TableHead>Potential Matches in ConnectSphere</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {matches.map((matchGroup) => (
                                         <TableRow key={matchGroup.id}>
-                                            <TableCell className="text-sm align-top w-1/3">
-                                                <div className="space-y-1">
+                                            <TableCell className="text-sm align-top">
+                                                <div className="space-y-1 pr-4">
                                                 {Object.entries(matchGroup.fileRow).map(([key, value]) => (
                                                    <div key={key} className="truncate"><span className="font-semibold">{key}:</span> {String(value)}</div>
                                                 ))}
