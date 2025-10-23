@@ -286,7 +286,7 @@ const findMatchesSchema = z.object({
   mapping: z.record(bulkActionMappedField),
 });
 
-const normalizePhone = (phone: string) => phone.replace(/[^\d]/g, '');
+const normalizePhone = (phone: string | number) => String(phone).replace(/[^\d]/g, '');
 
 export async function findBulkMatches(data: unknown) {
     try {
