@@ -340,7 +340,7 @@ export async function findBulkMatches(data: unknown) {
         }
 
         const allConnections = connectionsSnapshot.docs.map(doc => {
-            const data = doc.data() as Connection;
+            const data = doc.data() as Omit<Connection, 'id'>;
             const nameParts = (data.name || '').toLowerCase().split(' ');
             const connFirstName = nameParts[0] || '';
             const connLastName = nameParts.length > 1 ? nameParts.slice(-1)[0] : '';
@@ -407,6 +407,7 @@ const bulkActionSchema = z.object({
 });
 
 export async function bulkConnectionsAction(data: unknown) {
+    let action: 'delete' | undefined = undefined;
     try {
         const { db } = await getFirebaseAdmin();
         const validatedRequest = bulkActionSchema.safeParse(data);
@@ -415,7 +416,8 @@ export async function bulkConnectionsAction(data: unknown) {
             return { success: false, message: 'Invalid data for bulk action.' };
         }
 
-        const { connectionIds, action } = validatedRequest.data;
+        const { connectionIds } = validatedRequest.data;
+        action = validatedRequest.data.action;
         const batch = db.batch();
         let actionCount = 0;
 
